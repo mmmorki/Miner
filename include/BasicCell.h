@@ -1,9 +1,9 @@
 #ifndef BASICCELL_H
 #define BASICCELL_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 
-class BasicCell : public QGraphicsItem
+class BasicCell : public QGraphicsObject
 {
     Q_OBJECT
 

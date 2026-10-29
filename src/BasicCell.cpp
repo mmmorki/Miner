@@ -5,7 +5,7 @@
 #include <QPainter>
 
 BasicCell::BasicCell(const int col, const int row, QGraphicsItem* parent)
-    : QGraphicsItem { parent }
+    : QGraphicsObject { parent }
     , m_col         { col }
     , m_row         { row }
 {
