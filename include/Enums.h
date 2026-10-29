@@ -9,6 +9,7 @@ namespace MainWindowEnums
     {
         Main,
         Settings,
+        Game,
         MaxPage,
     };
 }

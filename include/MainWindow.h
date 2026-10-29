@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class Field;
+
 class QWidget;
 class QStackedWidget;
 class QGridLayout;
@@ -10,6 +12,7 @@ class QPushButton;
 class QHBoxLayout;
 class QLabel;
 class QLineEdit;
+class QGraphicsView;
 
 class MainWindow final : public QMainWindow
 {
@@ -23,6 +26,7 @@ protected:
     void setupCentral();
     void setupMainPage();
     void setupSettingsPage();
+    void setupGameScene();
 
 private:
     QWidget* m_central{ nullptr };
@@ -43,6 +47,9 @@ private:
     QLabel* m_minesCountSettingLabel{ nullptr };
     QLineEdit* m_minesCountSettingLineEdit{ nullptr };
     QPushButton* m_acceptSettingsBtn{ nullptr };
+
+    Field* m_gameField{ nullptr };
+    QGraphicsView* m_gameView{ nullptr };
 };
 
 #endif //MAINWINDOW_H
