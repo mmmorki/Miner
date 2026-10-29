@@ -17,8 +17,12 @@ find_package(Qt6 REQUIRED COMPONENTS
 add_executable(miner
         src/main.cpp
         src/MainWindow.cpp
+        src/Field.cpp
         include/MainWindow.h
-        include/Enums.h)
+        include/Enums.h
+        include/Field.h
+        include/Functions.h
+        include/Constants.h)
 
 target_include_directories(miner PRIVATE
         include)
