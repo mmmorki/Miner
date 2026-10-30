@@ -26,7 +26,7 @@ protected:
     void setupCentral();
     void setupMainPage();
     void setupSettingsPage();
-    void setupGameScene();
+    void setupGameScene() const;
 
 private:
     QWidget* m_central{ nullptr };

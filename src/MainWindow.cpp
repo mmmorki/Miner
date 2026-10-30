@@ -100,13 +100,8 @@ void MainWindow::setupSettingsPage()
             const int fieldHeight{ toInt(m_fieldHeightSettingLineEdit->text()) };
             const int minesCount{ toInt(m_minesCountSettingLineEdit->text()) };
 
-            if (fieldWidth != Constants::DEFAULT_FIELD_WIDTH_CELLS
-                || fieldHeight != Constants::DEFAULT_FIELD_HEIGHT_CELLS)
-                m_gameField->setFieldSizeCells(fieldWidth, fieldHeight);
-
-            if (minesCount != Constants::DEFAULT_MINES_COUNT)
-                m_gameField->setMinesCount(minesCount);
-
+            m_gameField->setFieldSizeCells(fieldWidth, fieldHeight);
+            m_gameField->setMinesCount(minesCount);
             m_gameField->generate();
 
             m_centralStack->setCurrentIndex(MainWindowEnums::Game);
@@ -115,7 +110,7 @@ void MainWindow::setupSettingsPage()
     connect(m_acceptSettingsBtn, &QPushButton::clicked, acceptSettingsBtnLambda);
 }
 
-void MainWindow::setupGameScene()
+void MainWindow::setupGameScene() const
 {
     m_centralStack->insertWidget(MainWindowEnums::Game, m_gameView);
 

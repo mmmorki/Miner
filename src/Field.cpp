@@ -10,10 +10,7 @@
 #include <random>
 
 Field::Field(QObject* parent)
-    : QGraphicsScene        { parent }
-    , m_fieldWidthCells     { Constants::DEFAULT_FIELD_WIDTH_CELLS }
-    , m_fieldHeightCells    { Constants::DEFAULT_FIELD_HEIGHT_CELLS }
-    , m_minesCount          { Constants::DEFAULT_MINES_COUNT }
+    : QGraphicsScene{ parent }
 {
 }
 
@@ -87,9 +84,8 @@ void Field::generateMinesMap()
 
     while (m_minesMap.size() < m_minesCount)
     {
-        const int num{ distribution(generator) };
-
-        if (!contains<int>(m_minesMap, num))
+        if (const int num{ distribution(generator) };
+            !contains<int>(m_minesMap, num))
             m_minesMap.push_back(num);
     }
 }
