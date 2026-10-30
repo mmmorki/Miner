@@ -24,8 +24,6 @@ protected:
         return;
     }
 
-private:
-
 };
 
 #endif //MINEDCELL_H

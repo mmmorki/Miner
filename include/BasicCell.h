@@ -16,20 +16,17 @@ public:
 
     [[nodiscard]] int getCol() const;
     [[nodiscard]] int getRow() const;
-    [[nodiscard]] bool isChecked( )const;
+    [[nodiscard]] bool isChecked() const;
+    [[nodiscard]] bool isMarked() const;
 
 protected:
     [[nodiscard]] QRectF boundingRect() const override;
-
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-               QWidget* widget = nullptr) override = 0;
-
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override = 0;
 
 private:
     int m_col{};
     int m_row{};
     bool m_checked{ false };
+    bool m_marked{ false };
 };
 
 #endif //BASICCELL_H

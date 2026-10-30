@@ -27,6 +27,11 @@ bool BasicCell::isChecked() const
     return m_checked;
 }
 
+bool BasicCell::isMarked() const
+{
+    return m_marked;
+}
+
 QRectF BasicCell::boundingRect() const
 {
     return QRectF{ 0.0, 0.0, Constants::CELL_WIDTH_PX,

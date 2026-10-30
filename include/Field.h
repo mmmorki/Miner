@@ -20,6 +20,8 @@ public:
 
     void generate();
     void generateMinesMap();
+    void arrangeNums() const;
+    void incrementCellsAround(int col, int row) const;
 
 private:
     int m_fieldWidthCells{};

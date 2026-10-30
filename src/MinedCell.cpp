@@ -3,13 +3,12 @@
 MinedCell::MinedCell(const int col, const int row, QGraphicsItem* parent)
     : BasicCell{ col, row, parent }
 {
-
 }
 
 void MinedCell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-    painter->setPen(Constants::CELL_OUTLINE_COLOR);
+    painter->setPen(QPen{ Constants::CELL_OUTLINE_COLOR, 1 });
 
     if (!isChecked())
         painter->setBrush(QBrush{ Constants::MINED_CELL_COLOR });
