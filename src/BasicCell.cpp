@@ -6,23 +6,29 @@
 
 BasicCell::BasicCell(const int col, const int row, QGraphicsItem* parent)
     : QGraphicsObject { parent }
-    , m_col         { col }
-    , m_row         { row }
+    , m_col           { col }
+    , m_row           { row }
 {
     setAcceptedMouseButtons(Qt::MouseButtons{ Qt::LeftButton, Qt::RightButton });
+}
 
+int BasicCell::getCol() const
+{
+    return m_col;
+}
+
+int BasicCell::getRow() const
+{
+    return m_row;
+}
+
+bool BasicCell::isChecked() const
+{
+    return m_checked;
 }
 
 QRectF BasicCell::boundingRect() const
 {
     return QRectF{ 0.0, 0.0, Constants::CELL_WIDTH_PX,
                    Constants::CELL_HEIGHT_PX };
-}
-
-void BasicCell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-                      QWidget* widget)
-{
-    painter->setBrush(QBrush{ QColor{ 186, 186, 186 } });
-    painter->drawRect(QRectF{ 0.0, 0.0, Constants::CELL_WIDTH_PX,
-                              Constants::CELL_HEIGHT_PX });
 }

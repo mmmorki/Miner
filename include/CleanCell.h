@@ -12,10 +12,10 @@ public:
     ~CleanCell() override = default;
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-    {
-        return;
-    }
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+        QWidget* widget = nullptr) override;
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
 #endif //CLEANCELL_H
