@@ -1,0 +1,33 @@
+#ifndef MINEDCELL_H
+#define MINEDCELL_H
+
+#include "BasicCell.h"
+
+#include <QPainter>
+
+class MinedCell final : public BasicCell
+{
+    Q_OBJECT
+
+public:
+    explicit MinedCell(int col, int row, QGraphicsItem* parent = nullptr);
+    ~MinedCell() override = default;
+
+protected:
+    /*void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+        QWidget* widget = nullptr) override
+    {
+        painter->setBrush(QBrush{ Qt::red });
+        painter->drawRect(QRectF{ 0.0, 0.0, 40.0, 40.0 });
+    }*/
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+    {
+        return;
+    }
+
+private:
+
+};
+
+#endif //MINEDCELL_H

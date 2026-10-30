@@ -19,11 +19,15 @@ add_executable(miner
         src/MainWindow.cpp
         src/Field.cpp
         src/BasicCell.cpp
+        src/MinedCell.cpp
+        src/CleanCell.cpp
         include/MainWindow.h
         include/Enums.h
         include/Field.h
         include/Functions.h
         include/BasicCell.h
+        include/MinedCell.h
+        include/CleanCell.h
         include/Constants.h)
 
 target_include_directories(miner PRIVATE
