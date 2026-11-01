@@ -8,8 +8,48 @@
 
 #include <vector>
 #include <random>
+#include <iostream>
+
+#include <QMessageBox>
 
 using size_t = std::size_t;
+
+void Field::leftClickedCellSlot()
+{
+    if (auto* cell{ dynamic_cast<BasicCell*>(sender()) };
+        cell && !cell->isMarked())
+    {
+        if (!cell->isChecked())
+        {
+            cell->check();
+
+            if (const auto* cleanCell{ dynamic_cast<CleanCell*>(cell) };
+                cleanCell && cleanCell->getMinesAroundCount() == 0)
+                checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
+        }
+
+        else
+            checkCellsAround(cell->getCol(), cell->getRow());
+    }
+}
+
+void Field::rightClickedCellSlot()
+{
+    if (auto* cell{ dynamic_cast<BasicCell*>(sender()) };
+        cell && !cell->isChecked())
+    {
+        cell->setMarked(!cell->isMarked());
+        m_flagsLeftCount += cell->isMarked() ? -1 : 1;
+
+        if (allMinesMarked())
+            victory();
+    }
+}
+
+void Field::minedCellExplodeSlot()
+{
+    explode();
+}
 
 Field::Field(QObject* parent)
     : QGraphicsScene{ parent }
@@ -30,6 +70,7 @@ void Field::setFieldSizeCells(const int fieldWidthCells,
 void Field::setMinesCount(const int minesCount)
 {
     m_minesCount = minesCount;
+    m_flagsLeftCount = minesCount;
 
     m_minesMap.reserve(m_minesCount);
 }
@@ -52,8 +93,13 @@ void Field::generate()
                 addItem(cell);
                 cell->setPos(col * Constants::CELL_WIDTH_PX,
                              row * Constants::CELL_HEIGHT_PX);
-
                 currentCol.push_back(cell);
+                connect(cell, &MinedCell::leftClickedCellSignal,
+                        this, &Field::leftClickedCellSlot);
+                connect(cell, &MinedCell::rightClickedCellSignal,
+                        this, &Field::rightClickedCellSlot);
+                connect(cell, &MinedCell::minedCellExplodeSignal,
+                        this, &Field::minedCellExplodeSlot);
             }
 
             else
@@ -63,14 +109,17 @@ void Field::generate()
                 addItem(cell);
                 cell->setPos(col * Constants::CELL_WIDTH_PX,
                              row * Constants::CELL_HEIGHT_PX);
-
                 currentCol.push_back(cell);
+                connect(cell, &CleanCell::leftClickedCellSignal,
+                        this, &Field::leftClickedCellSlot);
+                connect(cell, &CleanCell::rightClickedCellSignal,
+                        this, &Field::rightClickedCellSlot);
             }
 
             ++timer;
         }
 
-        m_cellData.push_back(currentCol);
+        m_cellsData.push_back(currentCol);
     }
 
     arrangeNums();
@@ -101,11 +150,11 @@ void Field::arrangeNums() const
         const int col{ num / m_fieldHeightCells };
         const int row{ num % m_fieldHeightCells };
 
-        incrementCellsAround(col, row);
+        incrementCellsNumsAround(col, row);
     }
 }
 
-void Field::incrementCellsAround(const int col, const int row) const
+void Field::incrementCellsNumsAround(const int col, const int row) const
 {
     for (int colMod{ -1 }; colMod <= 1; ++colMod)
         for (int rowMod{ -1 }; rowMod <= 1; ++rowMod)
@@ -113,21 +162,94 @@ void Field::incrementCellsAround(const int col, const int row) const
             if (colMod == 0 && rowMod == 0)
                 continue;
 
-            const int currCol{ col + colMod };
-            const int currRow{ row + rowMod };
+            if (col + colMod < 0 || col + colMod >= m_fieldWidthCells
+                || row + rowMod < 0 || row + rowMod >= m_fieldHeightCells)
+                continue;
 
-            if (currCol >= 0 && currCol < m_fieldWidthCells
-                && currRow >= 0 && currRow < m_fieldHeightCells)
+            const size_t currColST{ static_cast<size_t>(col + colMod) };
+            const size_t currRowST{ static_cast<size_t>(row + rowMod) };
+
+            BasicCell* currCell{ m_cellsData[currColST][currRowST] };
+
+            if (auto* currCCell{ dynamic_cast<CleanCell*>(currCell) };
+                currCCell)
+                currCCell->incrementMinesAroundCount();
+        }
+}
+
+void Field::checkCellsAround(const int col, const int row) const
+{
+    for (int colMod{ -1 }; colMod <= 1; ++colMod)
+        for (int rowMod{ -1 }; rowMod <= 1; ++rowMod)
+        {
+            if (colMod == 0 && rowMod == 0)
+                continue;
+
+            if (col + colMod < 0 || col + colMod >= m_fieldWidthCells
+                || row + rowMod < 0 || row + rowMod >= m_fieldHeightCells)
+                continue;
+
+            const size_t currColST{ static_cast<size_t>(col + colMod) };
+            const size_t currRowST{ static_cast<size_t>(row + rowMod) };
+
+            BasicCell* currCell{ m_cellsData[currColST][currRowST] };
+
+            if (!currCell->isChecked() && !currCell->isMarked())
             {
-                const size_t currColST{ static_cast<size_t>(currCol) };
-                const size_t currRowST{ static_cast<size_t>(currRow) };
-
-                BasicCell* currCell{ m_cellData[currColST][currRowST] };
-
+                currCell->check();
+                if (dynamic_cast<MinedCell*>(currCell))
+                    return;
 
                 if (auto* currCCell{ dynamic_cast<CleanCell*>(currCell) };
-                    currCCell)
-                    currCCell->incrementMinesAroundCount();
+                    currCCell && currCCell->getMinesAroundCount() == 0)
+                    checkCellsAround(static_cast<int>(currColST),
+                                     static_cast<int>(currRowST));
             }
         }
+}
+
+bool Field::allMinesMarked() const
+{
+    bool marked{ true };
+
+    for (const int num : m_minesMap)
+    {
+        const size_t col{ static_cast<size_t>(num / m_fieldHeightCells) };
+        const size_t row{ static_cast<size_t>(num % m_fieldHeightCells) };
+
+        marked &= m_cellsData[col][row]->isMarked();
+    }
+
+    return marked;
+}
+
+void Field::explode()
+{
+    for (const int num : m_minesMap)
+    {
+        const size_t col{ static_cast<size_t>(num / m_fieldHeightCells) };
+        const size_t row{ static_cast<size_t>(num % m_fieldHeightCells) };
+
+        m_cellsData[col][row]->BasicCell::check();
+    }
+
+    defeat();
+}
+
+void Field::victory()
+{
+    endGame();
+}
+
+void Field::defeat()
+{
+    endGame();
+}
+
+void Field::endGame()
+{
+    m_cellsData.clear();
+    m_minesMap.clear();
+
+    emit endGameSignal();
 }

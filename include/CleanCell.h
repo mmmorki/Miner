@@ -11,16 +11,13 @@ public:
     explicit CleanCell(int col, int row, QGraphicsItem* parent = nullptr);
     ~CleanCell() override = default;
 
+    [[nodiscard]] int getMinesAroundCount() const;
+
     void incrementMinesAroundCount();
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         QWidget* widget = nullptr) override;
-
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-    {
-        return;
-    }
 
 private:
     int m_minesAroundCount{ 0 };

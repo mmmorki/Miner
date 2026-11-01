@@ -8,10 +8,11 @@ class BasicCell : public QGraphicsObject
     Q_OBJECT
 
 public: signals:
-    void cellClickedSignal();
+    void leftClickedCellSignal();
+    void rightClickedCellSignal();
 
 public:
-    explicit BasicCell(int col, int row, QGraphicsItem* item = nullptr);
+    explicit BasicCell(int col, int row, QGraphicsItem* parent = nullptr);
     ~BasicCell() override = default;
 
     [[nodiscard]] int getCol() const;
@@ -19,8 +20,13 @@ public:
     [[nodiscard]] bool isChecked() const;
     [[nodiscard]] bool isMarked() const;
 
+    virtual void check();
+    void setMarked(bool marked);
+
 protected:
     [[nodiscard]] QRectF boundingRect() const override;
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
     int m_col{};

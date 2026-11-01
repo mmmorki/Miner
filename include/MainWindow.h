@@ -18,7 +18,18 @@ class MainWindow final : public QMainWindow
 {
     Q_OBJECT
 
+private slots:
+    void endGameSlot();
+
 public:
+    enum Page : std::int8_t
+    {
+        Main,
+        Settings,
+        Game,
+        MaxPage,
+    };
+
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override = default;
 

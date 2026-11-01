@@ -6,10 +6,20 @@
 #include <QGraphicsScene>
 
 class BasicCell;
+class MinedCell;
 
 class Field final : public QGraphicsScene
 {
     Q_OBJECT
+
+public: signals:
+    void endGameSignal();
+
+private slots:
+    void leftClickedCellSlot();
+    void rightClickedCellSlot();
+
+    void minedCellExplodeSlot();
 
 public:
     explicit Field(QObject* parent = nullptr);
@@ -20,14 +30,25 @@ public:
 
     void generate();
     void generateMinesMap();
+
     void arrangeNums() const;
-    void incrementCellsAround(int col, int row) const;
+    void incrementCellsNumsAround(int col, int row) const;
+
+    void checkCellsAround(int col, int row) const;
+
+    bool allMinesMarked() const;
+    void explode();
+    void victory();
+    void defeat();
+
+    void endGame();
 
 private:
     int m_fieldWidthCells{};
     int m_fieldHeightCells{};
     int m_minesCount{};
-    std::vector<std::vector<BasicCell*>> m_cellData{};
+    int m_flagsLeftCount{};
+    std::vector<std::vector<BasicCell*>> m_cellsData{};
     std::vector<int> m_minesMap{};
 };
 

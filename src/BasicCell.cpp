@@ -3,6 +3,7 @@
 #include "BasicCell.h"
 
 #include <QPainter>
+#include <QGraphicsSceneMouseEvent>
 
 BasicCell::BasicCell(const int col, const int row, QGraphicsItem* parent)
     : QGraphicsObject { parent }
@@ -12,28 +13,35 @@ BasicCell::BasicCell(const int col, const int row, QGraphicsItem* parent)
     setAcceptedMouseButtons(Qt::MouseButtons{ Qt::LeftButton, Qt::RightButton });
 }
 
-int BasicCell::getCol() const
-{
-    return m_col;
-}
+int BasicCell::getCol() const { return m_col; }
+int BasicCell::getRow() const { return m_row; }
+bool BasicCell::isChecked() const { return m_checked; }
+bool BasicCell::isMarked() const { return m_marked; }
 
-int BasicCell::getRow() const
+void BasicCell::check()
 {
-    return m_row;
+    m_checked = true;
+    update();
 }
-
-bool BasicCell::isChecked() const
+void BasicCell::setMarked(const bool marked)
 {
-    return m_checked;
-}
-
-bool BasicCell::isMarked() const
-{
-    return m_marked;
+    m_marked = marked;
+    update();
 }
 
 QRectF BasicCell::boundingRect() const
 {
     return QRectF{ 0.0, 0.0, Constants::CELL_WIDTH_PX,
                    Constants::CELL_HEIGHT_PX };
+}
+
+void BasicCell::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (event->button() == Qt::LeftButton)
+        emit leftClickedCellSignal();
+
+    else if (event->button() == Qt::RightButton)
+        emit rightClickedCellSignal();
+
+    event->accept();
 }

@@ -28,7 +28,8 @@ add_executable(miner
         include/BasicCell.h
         include/MinedCell.h
         include/CleanCell.h
-        include/Constants.h)
+        include/Constants.h
+        resources/resources.qrc)
 
 target_include_directories(miner PRIVATE
         include)

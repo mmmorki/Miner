@@ -17,6 +17,11 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
+void MainWindow::endGameSlot()
+{
+    m_centralStack->setCurrentIndex(Main);
+}
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow{ parent }
     , m_central{ new QWidget{ this } }
@@ -62,14 +67,14 @@ void MainWindow::setupCentral()
 
 void MainWindow::setupMainPage()
 {
-    m_centralStack->insertWidget(MainWindowEnums::Main, m_mainPage);
+    m_centralStack->insertWidget(Main, m_mainPage);
 
     m_mainLayout->addWidget(m_singleplayerBtn, 0, 0, 1, 1, Qt::AlignCenter);
     m_mainLayout->addWidget(m_multiplayerBtn, 1, 0, 1, 1, Qt::AlignCenter);
 
     auto singleplayerBtnLambda{
         [this] {
-            m_centralStack->setCurrentIndex(MainWindowEnums::Settings);
+            m_centralStack->setCurrentIndex(Settings);
         }
     };
     connect(m_singleplayerBtn, &QPushButton::clicked, singleplayerBtnLambda);
@@ -84,7 +89,7 @@ void MainWindow::setupMainPage()
 
 void MainWindow::setupSettingsPage()
 {
-    m_centralStack->insertWidget(MainWindowEnums::Settings, m_settingsPage);
+    m_centralStack->insertWidget(Settings, m_settingsPage);
 
     m_settingsLayout->addWidget(m_fieldWidthSettingLabel, 0, 0, 1, 1);
     m_settingsLayout->addWidget(m_fieldWidthSettingLineEdit, 0, 1, 1, 1);
@@ -100,11 +105,18 @@ void MainWindow::setupSettingsPage()
             const int fieldHeight{ toInt(m_fieldHeightSettingLineEdit->text()) };
             const int minesCount{ toInt(m_minesCountSettingLineEdit->text()) };
 
+            m_fieldWidthSettingLineEdit->setText(
+                Constants::DEFAULT_FIELD_WIDTH_CELLS_STR);
+            m_fieldHeightSettingLineEdit->setText(
+                Constants::DEFAULT_FIELD_HEIGHT_CELLS_STR);
+            m_minesCountSettingLineEdit->setText(
+                Constants::DEFAULT_MINES_COUNT_STR);
+
             m_gameField->setFieldSizeCells(fieldWidth, fieldHeight);
             m_gameField->setMinesCount(minesCount);
             m_gameField->generate();
 
-            m_centralStack->setCurrentIndex(MainWindowEnums::Game);
+            m_centralStack->setCurrentIndex(Game);
         }
     };
     connect(m_acceptSettingsBtn, &QPushButton::clicked, acceptSettingsBtnLambda);
@@ -112,7 +124,9 @@ void MainWindow::setupSettingsPage()
 
 void MainWindow::setupGameScene() const
 {
-    m_centralStack->insertWidget(MainWindowEnums::Game, m_gameView);
+    m_centralStack->insertWidget(Game, m_gameView);
 
     m_gameView->setScene(m_gameField);
+
+    connect(m_gameField, &Field::endGameSignal, this, &MainWindow::endGameSlot);
 }
