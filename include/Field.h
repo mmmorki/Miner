@@ -13,17 +13,21 @@ class Field final : public QGraphicsScene
     Q_OBJECT
 
 public: signals:
-    void endGameSignal();
+    void gameOverVictorySignal();
+    void gameOverDefeatSignal();
 
 private slots:
     void leftClickedCellSlot();
     void rightClickedCellSlot();
 
-    void minedCellExplodeSlot();
-
 public:
     explicit Field(QObject* parent = nullptr);
     ~Field() override = default;
+
+    void clearData();
+
+    void block();
+    void unblock();
 
     void setFieldSizeCells(int fieldWidthCells, int fieldHeightCells);
     void setMinesCount(int minesCount);
@@ -37,17 +41,20 @@ public:
     void checkCellsAround(int col, int row) const;
 
     bool allMinesMarked() const;
+
     void explode();
     void victory();
-    void defeat();
 
-    void endGame();
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
     int m_fieldWidthCells{};
     int m_fieldHeightCells{};
     int m_minesCount{};
     int m_flagsLeftCount{};
+    bool m_blocked{ false };
     std::vector<std::vector<BasicCell*>> m_cellsData{};
     std::vector<int> m_minesMap{};
 };

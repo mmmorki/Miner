@@ -17,9 +17,16 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
-void MainWindow::endGameSlot()
+using namespace MainWindowEnums;
+
+void MainWindow::gameOverVictorySlot()
 {
-    m_centralStack->setCurrentIndex(Main);
+    m_infoBar->setCurrentIndex(Victory);
+}
+
+void MainWindow::gameOverDefeatSlot()
+{
+    m_infoBar->setCurrentIndex(Defeat);
 }
 
 MainWindow::MainWindow(QWidget* parent)
@@ -50,13 +57,49 @@ MainWindow::MainWindow(QWidget* parent)
     , m_acceptSettingsBtn{
         new QPushButton{"Принять настройки", m_settingsPage } }
 
-    , m_gameField{ new Field{ m_centralStack } }
-    , m_gameView{ new QGraphicsView{ m_centralStack } }
+    , m_gamePage{ new QWidget{ m_centralStack } }
+    , m_gameLayout{ new QHBoxLayout{ m_gamePage } }
+    , m_gameField{ new Field{ m_gamePage } }
+    , m_gameView{ new QGraphicsView{ m_gamePage } }
+    , m_infoBar{ new QStackedWidget{ m_gamePage } }
+
+    , m_infoBarStatisticsPage{ new QWidget{ m_infoBar } }
+    , m_infoBarStatisticsLayout{ new QGridLayout{ m_infoBarStatisticsPage } }
+
+    , m_infoBarVictoryPage{ new QWidget{ m_infoBar } }
+    , m_infoBarVictoryLayout{ new QGridLayout{ m_infoBarVictoryPage } }
+    , m_infoBarVictoryBtn{ new QPushButton{ "Заебись", m_infoBarVictoryPage } }
+
+    , m_infoBarDefeatPage{ new QWidget{ m_infoBar } }
+    , m_infoBarDefeatLayout{ new QGridLayout{ m_infoBarDefeatPage } }
+    , m_infoBarDefeatBtn{ new QPushButton{ "Похуй", m_infoBarDefeatPage } }
 {
     setupCentral();
     setupMainPage();
     setupSettingsPage();
-    setupGameScene();
+    setupGamePage();
+    setupInfoBar();
+}
+
+void MainWindow::startGame() const
+{
+    const int fieldWidth{ toInt(m_fieldWidthSettingLineEdit->text()) };
+    const int fieldHeight{ toInt(m_fieldHeightSettingLineEdit->text()) };
+    const int minesCount{ toInt(m_minesCountSettingLineEdit->text()) };
+
+    m_gameField->setFieldSizeCells(fieldWidth, fieldHeight);
+    m_gameField->setMinesCount(minesCount);
+    m_gameField->generate();
+    m_gameField->unblock();
+
+    m_centralStack->setCurrentIndex(Game);
+    m_infoBar->setCurrentIndex(Statistics);
+}
+
+void MainWindow::endGame() const
+{
+    m_gameField->clearData();
+    m_centralStack->setCurrentIndex(Main);
 }
 
 void MainWindow::setupCentral()
@@ -101,9 +144,7 @@ void MainWindow::setupSettingsPage()
 
     auto acceptSettingsBtnLambda{
         [this] {
-            const int fieldWidth{ toInt(m_fieldWidthSettingLineEdit->text()) };
-            const int fieldHeight{ toInt(m_fieldHeightSettingLineEdit->text()) };
-            const int minesCount{ toInt(m_minesCountSettingLineEdit->text()) };
+            startGame();
 
             m_fieldWidthSettingLineEdit->setText(
                 Constants::DEFAULT_FIELD_WIDTH_CELLS_STR);
@@ -111,22 +152,41 @@ void MainWindow::setupSettingsPage()
                 Constants::DEFAULT_FIELD_HEIGHT_CELLS_STR);
             m_minesCountSettingLineEdit->setText(
                 Constants::DEFAULT_MINES_COUNT_STR);
-
-            m_gameField->setFieldSizeCells(fieldWidth, fieldHeight);
-            m_gameField->setMinesCount(minesCount);
-            m_gameField->generate();
-
-            m_centralStack->setCurrentIndex(Game);
         }
     };
     connect(m_acceptSettingsBtn, &QPushButton::clicked, acceptSettingsBtnLambda);
 }
 
-void MainWindow::setupGameScene() const
+void MainWindow::setupGamePage() const
 {
-    m_centralStack->insertWidget(Game, m_gameView);
+    m_centralStack->insertWidget(Game, m_gamePage);
 
+    m_gameLayout->addWidget(m_gameView, 4);
+    m_gameView->setMinimumSize(800, 600);
     m_gameView->setScene(m_gameField);
 
-    connect(m_gameField, &Field::endGameSignal, this, &MainWindow::endGameSlot);
+    m_gameLayout->addWidget(m_infoBar, 1);
+    m_infoBar->setMinimumSize(200, 600);
+
+    connect(m_gameField, &Field::gameOverVictorySignal,
+        this, &MainWindow::gameOverVictorySlot);
+    connect(m_gameField, &Field::gameOverDefeatSignal,
+        this, &MainWindow::gameOverDefeatSlot);
+}
+
+void MainWindow::setupInfoBar() const
+{
+    m_infoBar->insertWidget(Statistics, m_infoBarStatisticsPage);
+
+    m_infoBar->insertWidget(Victory, m_infoBarVictoryPage);
+    m_infoBarVictoryLayout->addWidget(m_infoBarVictoryBtn, 0, 0, 1, 1,
+        Qt::AlignCenter);
+    connect(m_infoBarVictoryBtn, &QPushButton::clicked,
+        this, &MainWindow::endGame);
+
+    m_infoBar->insertWidget(Defeat, m_infoBarDefeatPage);
+    m_infoBarDefeatLayout->addWidget(m_infoBarDefeatBtn, 0, 0, 1, 1,
+        Qt::AlignCenter);
+    connect(m_infoBarDefeatBtn, &QPushButton::clicked,
+        this, &MainWindow::endGame);
 }

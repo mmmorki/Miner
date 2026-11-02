@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include <QMessageBox>
+#include <QGraphicsSceneMouseEvent>
 
 using size_t = std::size_t;
 
@@ -41,20 +42,25 @@ void Field::rightClickedCellSlot()
         cell->setMarked(!cell->isMarked());
         m_flagsLeftCount += cell->isMarked() ? -1 : 1;
 
-        if (allMinesMarked())
+        if (m_flagsLeftCount == 0 && allMinesMarked())
             victory();
     }
-}
-
-void Field::minedCellExplodeSlot()
-{
-    explode();
 }
 
 Field::Field(QObject* parent)
     : QGraphicsScene{ parent }
 {
 }
+
+void Field::clearData()
+{
+    m_cellsData.clear();
+    m_minesMap.clear();
+}
+
+void Field::block() { m_blocked = true; }
+
+void Field::unblock() { m_blocked = false; }
 
 void Field::setFieldSizeCells(const int fieldWidthCells,
                               const int fieldHeightCells)
@@ -99,7 +105,7 @@ void Field::generate()
                 connect(cell, &MinedCell::rightClickedCellSignal,
                         this, &Field::rightClickedCellSlot);
                 connect(cell, &MinedCell::minedCellExplodeSignal,
-                        this, &Field::minedCellExplodeSlot);
+                        this, &Field::explode);
             }
 
             else
@@ -233,23 +239,28 @@ void Field::explode()
         m_cellsData[col][row]->BasicCell::check();
     }
 
-    defeat();
+    block();
+    emit gameOverDefeatSignal();
 }
 
 void Field::victory()
 {
-    endGame();
+    block();
+    emit gameOverVictorySignal();
 }
 
-void Field::defeat()
+void Field::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    endGame();
+    if (m_blocked)
+        event->accept();
+
+    else
+        QGraphicsScene::mousePressEvent(event);
 }
 
-void Field::endGame()
-{
-    m_cellsData.clear();
-    m_minesMap.clear();
 
-    emit endGameSignal();
+//Двойное нажатие запрещено
+void Field::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+    event->accept();
 }

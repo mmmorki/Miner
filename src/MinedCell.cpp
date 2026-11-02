@@ -16,7 +16,6 @@ void MinedCell::check()
 {
     BasicCell::check();
     emit minedCellExplodeSignal();
-    std::cerr << 122;
 }
 
 void MinedCell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,

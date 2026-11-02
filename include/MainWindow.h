@@ -19,25 +19,22 @@ class MainWindow final : public QMainWindow
     Q_OBJECT
 
 private slots:
-    void endGameSlot();
+    void gameOverVictorySlot();
+    void gameOverDefeatSlot();
 
 public:
-    enum Page : std::int8_t
-    {
-        Main,
-        Settings,
-        Game,
-        MaxPage,
-    };
-
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override = default;
+
+    void startGame() const;
+    void endGame() const;
 
 protected:
     void setupCentral();
     void setupMainPage();
     void setupSettingsPage();
-    void setupGameScene() const;
+    void setupGamePage() const;
+    void setupInfoBar() const;
 
 private:
     QWidget* m_central{ nullptr };
@@ -59,8 +56,22 @@ private:
     QLineEdit* m_minesCountSettingLineEdit{ nullptr };
     QPushButton* m_acceptSettingsBtn{ nullptr };
 
+    QWidget* m_gamePage{ nullptr };
+    QHBoxLayout* m_gameLayout{ nullptr };
     Field* m_gameField{ nullptr };
     QGraphicsView* m_gameView{ nullptr };
+    QStackedWidget* m_infoBar{ nullptr };
+
+    QWidget* m_infoBarStatisticsPage{ nullptr };
+    QGridLayout* m_infoBarStatisticsLayout{ nullptr };
+
+    QWidget* m_infoBarVictoryPage{ nullptr };
+    QGridLayout* m_infoBarVictoryLayout{ nullptr };
+    QPushButton* m_infoBarVictoryBtn{ nullptr };
+
+    QWidget* m_infoBarDefeatPage{ nullptr };
+    QGridLayout* m_infoBarDefeatLayout{ nullptr };
+    QPushButton* m_infoBarDefeatBtn{ nullptr };
 };
 
 #endif //MAINWINDOW_H
