@@ -20,6 +20,8 @@ private slots:
     void leftClickedCellSlot();
     void rightClickedCellSlot();
 
+    void cellCheckedSlot();
+
 public:
     explicit Field(QObject* parent = nullptr);
     ~Field() override = default;
@@ -40,9 +42,9 @@ public:
 
     void checkCellsAround(int col, int row) const;
 
-    bool allMinesMarked() const;
+    [[nodiscard]] bool allMinesMarked() const;
 
-    void explode();
+    void defeat();
     void victory();
 
 protected:
@@ -53,7 +55,8 @@ private:
     int m_fieldWidthCells{};
     int m_fieldHeightCells{};
     int m_minesCount{};
-    int m_flagsLeftCount{};
+    int m_flagsLeft{};
+    int m_cleanCellsLeft{};
     bool m_blocked{ false };
     std::vector<std::vector<BasicCell*>> m_cellsData{};
     std::vector<int> m_minesMap{};

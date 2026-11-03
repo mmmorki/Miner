@@ -68,11 +68,13 @@ MainWindow::MainWindow(QWidget* parent)
 
     , m_infoBarVictoryPage{ new QWidget{ m_infoBar } }
     , m_infoBarVictoryLayout{ new QGridLayout{ m_infoBarVictoryPage } }
-    , m_infoBarVictoryBtn{ new QPushButton{ "Заебись", m_infoBarVictoryPage } }
+    , m_infoBarVictoryToMenuBtn{ new QPushButton{ "Меню", m_infoBarVictoryPage } }
+    , m_infoBarVictoryRestartBtn{ new QPushButton{ "Играть снова", m_infoBarVictoryPage } }
 
     , m_infoBarDefeatPage{ new QWidget{ m_infoBar } }
     , m_infoBarDefeatLayout{ new QGridLayout{ m_infoBarDefeatPage } }
-    , m_infoBarDefeatBtn{ new QPushButton{ "Похуй", m_infoBarDefeatPage } }
+    , m_infoBarDefeatToMenuBtn{ new QPushButton{ "Меню", m_infoBarDefeatPage } }
+    , m_infoBarDefeatRestartBtn{ new QPushButton{ "Играть снова", m_infoBarDefeatPage } }
 {
     setupCentral();
     setupMainPage();
@@ -100,6 +102,14 @@ void MainWindow::endGame() const
 {
     m_gameField->clearData();
     m_centralStack->setCurrentIndex(Main);
+}
+
+void MainWindow::restartGame() const
+{
+    m_gameField->generate();
+    m_gameField->unblock();
+
+    m_infoBar->setCurrentIndex(Statistics);
 }
 
 void MainWindow::setupCentral()
@@ -157,7 +167,7 @@ void MainWindow::setupSettingsPage()
     connect(m_acceptSettingsBtn, &QPushButton::clicked, acceptSettingsBtnLambda);
 }
 
-void MainWindow::setupGamePage() const
+void MainWindow::setupGamePage()
 {
     m_centralStack->insertWidget(Game, m_gamePage);
 
@@ -174,19 +184,27 @@ void MainWindow::setupGamePage() const
         this, &MainWindow::gameOverDefeatSlot);
 }
 
-void MainWindow::setupInfoBar() const
+void MainWindow::setupInfoBar()
 {
     m_infoBar->insertWidget(Statistics, m_infoBarStatisticsPage);
 
     m_infoBar->insertWidget(Victory, m_infoBarVictoryPage);
-    m_infoBarVictoryLayout->addWidget(m_infoBarVictoryBtn, 0, 0, 1, 1,
+    m_infoBarVictoryLayout->addWidget(m_infoBarVictoryToMenuBtn, 0, 0, 1, 1,
         Qt::AlignCenter);
-    connect(m_infoBarVictoryBtn, &QPushButton::clicked,
+    connect(m_infoBarVictoryToMenuBtn, &QPushButton::clicked,
         this, &MainWindow::endGame);
+    m_infoBarVictoryLayout->addWidget(m_infoBarVictoryRestartBtn, 1, 0, 1, 1,
+        Qt::AlignCenter);
+    connect(m_infoBarVictoryRestartBtn, &QPushButton::clicked,
+        this, &MainWindow::restartGame);
 
     m_infoBar->insertWidget(Defeat, m_infoBarDefeatPage);
-    m_infoBarDefeatLayout->addWidget(m_infoBarDefeatBtn, 0, 0, 1, 1,
+    m_infoBarDefeatLayout->addWidget(m_infoBarDefeatToMenuBtn, 0, 0, 1, 1,
         Qt::AlignCenter);
-    connect(m_infoBarDefeatBtn, &QPushButton::clicked,
+    connect(m_infoBarDefeatToMenuBtn, &QPushButton::clicked,
         this, &MainWindow::endGame);
+    m_infoBarDefeatLayout->addWidget(m_infoBarDefeatRestartBtn, 1, 0, 1, 1,
+        Qt::AlignCenter);
+    connect(m_infoBarDefeatRestartBtn, &QPushButton::clicked,
+        this, &MainWindow::restartGame);
 }

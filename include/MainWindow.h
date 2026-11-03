@@ -28,13 +28,14 @@ public:
 
     void startGame() const;
     void endGame() const;
+    void restartGame() const;
 
 protected:
     void setupCentral();
     void setupMainPage();
     void setupSettingsPage();
-    void setupGamePage() const;
-    void setupInfoBar() const;
+    void setupGamePage();
+    void setupInfoBar();
 
 private:
     QWidget* m_central{ nullptr };
@@ -67,11 +68,13 @@ private:
 
     QWidget* m_infoBarVictoryPage{ nullptr };
     QGridLayout* m_infoBarVictoryLayout{ nullptr };
-    QPushButton* m_infoBarVictoryBtn{ nullptr };
+    QPushButton* m_infoBarVictoryToMenuBtn{ nullptr };
+    QPushButton* m_infoBarVictoryRestartBtn{ nullptr };
 
     QWidget* m_infoBarDefeatPage{ nullptr };
     QGridLayout* m_infoBarDefeatLayout{ nullptr };
-    QPushButton* m_infoBarDefeatBtn{ nullptr };
+    QPushButton* m_infoBarDefeatToMenuBtn{ nullptr };
+    QPushButton* m_infoBarDefeatRestartBtn{ nullptr };
 };
 
 #endif //MAINWINDOW_H

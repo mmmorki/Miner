@@ -17,34 +17,41 @@ using size_t = std::size_t;
 
 void Field::leftClickedCellSlot()
 {
-    if (auto* cell{ dynamic_cast<BasicCell*>(sender()) };
-        cell && !cell->isMarked())
+    if (auto* const cleanCell{ dynamic_cast<CleanCell*>(sender()) };
+        cleanCell)
     {
-        if (!cell->isChecked())
-        {
-            cell->check();
-
-            if (const auto* cleanCell{ dynamic_cast<CleanCell*>(cell) };
-                cleanCell && cleanCell->getMinesAroundCount() == 0)
-                checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
-        }
+        if (cleanCell->isChecked())
+            checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
 
         else
-            checkCellsAround(cell->getCol(), cell->getRow());
+            cleanCell->check();
     }
+
+    else if (auto* const minedCell{ dynamic_cast<MinedCell*>(sender()) };
+        minedCell)
+        minedCell->check();
 }
 
 void Field::rightClickedCellSlot()
 {
-    if (auto* cell{ dynamic_cast<BasicCell*>(sender()) };
-        cell && !cell->isChecked())
-    {
-        cell->setMarked(!cell->isMarked());
-        m_flagsLeftCount += cell->isMarked() ? -1 : 1;
+    --m_flagsLeft;
+}
 
-        if (m_flagsLeftCount == 0 && allMinesMarked())
+void Field::cellCheckedSlot()
+{
+    if (const auto* const cleanCell{ dynamic_cast<CleanCell*>(sender()) };
+        cleanCell)
+    {
+        if (--m_cleanCellsLeft == 0)
             victory();
+
+        if (cleanCell->getMinesAroundCount() == 0)
+            checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
     }
+
+    else if (const auto* const minedCell{ dynamic_cast<MinedCell*>(sender()) };
+        minedCell)
+        defeat();
 }
 
 Field::Field(QObject* parent)
@@ -76,14 +83,18 @@ void Field::setFieldSizeCells(const int fieldWidthCells,
 void Field::setMinesCount(const int minesCount)
 {
     m_minesCount = minesCount;
-    m_flagsLeftCount = minesCount;
+    m_flagsLeft = minesCount;
 
     m_minesMap.reserve(m_minesCount);
 }
 
 void Field::generate()
 {
+    clearData();
     generateMinesMap();
+
+    m_cleanCellsLeft = m_fieldWidthCells * m_fieldHeightCells - m_minesCount;
+
     int timer{ 0 };
 
     for (int col{ 0 }; col < m_fieldWidthCells; ++col)
@@ -104,8 +115,8 @@ void Field::generate()
                         this, &Field::leftClickedCellSlot);
                 connect(cell, &MinedCell::rightClickedCellSignal,
                         this, &Field::rightClickedCellSlot);
-                connect(cell, &MinedCell::minedCellExplodeSignal,
-                        this, &Field::explode);
+                connect(cell, &MinedCell::cellCheckedSignal,
+                        this, &Field::cellCheckedSlot);
             }
 
             else
@@ -120,6 +131,8 @@ void Field::generate()
                         this, &Field::leftClickedCellSlot);
                 connect(cell, &CleanCell::rightClickedCellSignal,
                         this, &Field::rightClickedCellSlot);
+                connect(cell, &CleanCell::cellCheckedSignal,
+                        this, &Field::cellCheckedSlot);
             }
 
             ++timer;
@@ -198,19 +211,7 @@ void Field::checkCellsAround(const int col, const int row) const
             const size_t currColST{ static_cast<size_t>(col + colMod) };
             const size_t currRowST{ static_cast<size_t>(row + rowMod) };
 
-            BasicCell* currCell{ m_cellsData[currColST][currRowST] };
-
-            if (!currCell->isChecked() && !currCell->isMarked())
-            {
-                currCell->check();
-                if (dynamic_cast<MinedCell*>(currCell))
-                    return;
-
-                if (auto* currCCell{ dynamic_cast<CleanCell*>(currCell) };
-                    currCCell && currCCell->getMinesAroundCount() == 0)
-                    checkCellsAround(static_cast<int>(currColST),
-                                     static_cast<int>(currRowST));
-            }
+            m_cellsData[currColST][currRowST]->check();
         }
 }
 
@@ -229,14 +230,14 @@ bool Field::allMinesMarked() const
     return marked;
 }
 
-void Field::explode()
+void Field::defeat()
 {
     for (const int num : m_minesMap)
     {
         const size_t col{ static_cast<size_t>(num / m_fieldHeightCells) };
         const size_t row{ static_cast<size_t>(num % m_fieldHeightCells) };
 
-        m_cellsData[col][row]->BasicCell::check();
+        m_cellsData[col][row]->check();
     }
 
     block();

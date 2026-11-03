@@ -20,19 +20,36 @@ bool BasicCell::isMarked() const { return m_marked; }
 
 void BasicCell::check()
 {
-    m_checked = true;
-    update();
+    if (!isMarked() && !isChecked())
+    {
+        m_checked = true;
+        update();
+        emit cellCheckedSignal();
+    }
 }
-void BasicCell::setMarked(const bool marked)
+
+void BasicCell::mark()
 {
-    m_marked = marked;
-    update();
+    if (!isChecked())
+    {
+        m_marked = true;
+        update();
+    }
+}
+
+void BasicCell::unmark()
+{
+    if (!isChecked())
+    {
+        m_marked = false;
+        update();
+    }
 }
 
 QRectF BasicCell::boundingRect() const
 {
     return QRectF{ 0.0, 0.0, Constants::CELL_WIDTH_PX,
-                   Constants::CELL_HEIGHT_PX };
+                             Constants::CELL_HEIGHT_PX };
 }
 
 void BasicCell::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -41,7 +58,15 @@ void BasicCell::mousePressEvent(QGraphicsSceneMouseEvent* event)
         emit leftClickedCellSignal();
 
     else if (event->button() == Qt::RightButton)
+    {
+        if (isMarked())
+            unmark();
+
+        else
+            mark();
+
         emit rightClickedCellSignal();
+    }
 
     event->accept();
 }

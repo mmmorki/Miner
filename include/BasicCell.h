@@ -11,6 +11,8 @@ public: signals:
     void leftClickedCellSignal();
     void rightClickedCellSignal();
 
+    void cellCheckedSignal();
+
 public:
     explicit BasicCell(int col, int row, QGraphicsItem* parent = nullptr);
     ~BasicCell() override = default;
@@ -20,8 +22,9 @@ public:
     [[nodiscard]] bool isChecked() const;
     [[nodiscard]] bool isMarked() const;
 
-    virtual void check();
-    void setMarked(bool marked);
+    void check();
+    void mark();
+    void unmark();
 
 protected:
     [[nodiscard]] QRectF boundingRect() const override;

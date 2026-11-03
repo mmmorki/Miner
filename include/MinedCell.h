@@ -8,13 +8,11 @@ class MinedCell final : public BasicCell
     Q_OBJECT
 
 public: signals:
-    void minedCellExplodeSignal();
+    void explodeSignal();
 
 public:
     explicit MinedCell(int col, int row, QGraphicsItem* parent = nullptr);
     ~MinedCell() override = default;
-
-    void check() override;
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,

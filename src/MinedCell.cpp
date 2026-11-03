@@ -12,12 +12,6 @@ MinedCell::MinedCell(const int col, const int row, QGraphicsItem* parent)
 {
 }
 
-void MinedCell::check()
-{
-    BasicCell::check();
-    emit minedCellExplodeSignal();
-}
-
 void MinedCell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
