@@ -9,7 +9,6 @@ class BasicCell : public QGraphicsObject
 
 public: signals:
     void leftClickedCellSignal();
-    void rightClickedCellSignal();
 
     void cellCheckedSignal();
 

@@ -1,6 +1,8 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+#include "Enums.h"
+
 #include <vector>
 
 #include <QGraphicsScene>
@@ -16,9 +18,17 @@ public: signals:
     void gameOverVictorySignal();
     void gameOverDefeatSignal();
 
+    void toOnlineLeftClickSignal(std::int32_t col, std::int32_t row);
+    void toOnlineRightClickSignal(std::int32_t col, std::int32_t row);
+
+public slots:
+    void fromOnlineLeftClickSlot(std::int8_t playerNum, std::int32_t col,
+        std::int32_t row);
+    void fromOnlineRightClickSlot(std::int8_t playerNum, std::int32_t col,
+        std::int32_t row);
+
 private slots:
     void leftClickedCellSlot();
-    void rightClickedCellSlot();
 
     void cellCheckedSlot();
 

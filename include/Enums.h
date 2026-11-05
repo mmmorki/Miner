@@ -9,6 +9,7 @@ namespace MainWindowEnums
     {
         Main,
         Settings,
+        Connection,
         Game,
         MaxPage,
     };
@@ -19,6 +20,25 @@ namespace MainWindowEnums
         Victory,
         Defeat,
         MaxInfoBarPage,
+    };
+
+    enum Mode : std::int8_t
+    {
+        None,
+        Single,
+        Host,
+        Client,
+        MaxMode,
+    };
+}
+
+namespace NetworkEnums
+{
+    enum MessageType : std::int8_t
+    {
+        LeftClick,
+        RightClick,
+        ShareField,
     };
 }
 

@@ -64,8 +64,6 @@ void BasicCell::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
         else
             mark();
-
-        emit rightClickedCellSignal();
     }
 
     event->accept();

@@ -25,6 +25,8 @@ namespace Constants
     static QColor CHECKED_CELL_COLOR{ 160, 160, 160, 255 };
     static QColor MINED_CELL_COLOR{ 255, 0, 0, 255 };
 
+    static quint16 NETWORK_PORT{ 10 };
+
     static char OBJECT_IN_DEV_STRING[] { "Объект в разработке" };
 }
 

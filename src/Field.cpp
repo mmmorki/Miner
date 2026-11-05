@@ -17,6 +17,9 @@ using size_t = std::size_t;
 
 void Field::leftClickedCellSlot()
 {
+    auto* basicCell{ dynamic_cast<BasicCell*>(sender()) };
+    emit toOnlineLeftClickSignal(basicCell->getCol(), basicCell->getRow());
+
     if (auto* const cleanCell{ dynamic_cast<CleanCell*>(sender()) };
         cleanCell)
     {
@@ -32,9 +35,28 @@ void Field::leftClickedCellSlot()
         minedCell->check();
 }
 
-void Field::rightClickedCellSlot()
+void Field::fromOnlineLeftClickSlot(const std::int8_t playerNum,
+    const std::int32_t col, const std::int32_t row)
 {
-    --m_flagsLeft;
+    const size_t colST{ static_cast<size_t>(col) };
+    const size_t rowST{ static_cast<size_t>(row) };
+
+    BasicCell* cell{ m_cellsData[colST][rowST] };
+    cell->leftClickedCellSignal();
+}
+
+void Field::fromOnlineRightClickSlot(const std::int8_t playerNum,
+    const std::int32_t col, const std::int32_t row)
+{
+    const size_t colST{ static_cast<size_t>(col) };
+    const size_t rowST{ static_cast<size_t>(row) };
+
+    if (BasicCell* const cell{ m_cellsData[colST][rowST] };
+        cell->isMarked())
+        cell->unmark();
+
+    else
+        cell->mark();
 }
 
 void Field::cellCheckedSlot()
@@ -113,8 +135,6 @@ void Field::generate()
                 currentCol.push_back(cell);
                 connect(cell, &MinedCell::leftClickedCellSignal,
                         this, &Field::leftClickedCellSlot);
-                connect(cell, &MinedCell::rightClickedCellSignal,
-                        this, &Field::rightClickedCellSlot);
                 connect(cell, &MinedCell::cellCheckedSignal,
                         this, &Field::cellCheckedSlot);
             }
@@ -129,8 +149,6 @@ void Field::generate()
                 currentCol.push_back(cell);
                 connect(cell, &CleanCell::leftClickedCellSignal,
                         this, &Field::leftClickedCellSlot);
-                connect(cell, &CleanCell::rightClickedCellSignal,
-                        this, &Field::rightClickedCellSlot);
                 connect(cell, &CleanCell::cellCheckedSignal,
                         this, &Field::cellCheckedSlot);
             }

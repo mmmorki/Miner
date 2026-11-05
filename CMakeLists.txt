@@ -12,7 +12,8 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 REQUIRED COMPONENTS
         Core
         Gui
-        Widgets)
+        Widgets
+        Network)
 
 add_executable(miner
         src/main.cpp
@@ -21,6 +22,8 @@ add_executable(miner
         src/BasicCell.cpp
         src/MinedCell.cpp
         src/CleanCell.cpp
+        src/Server.cpp
+        src/Client.cpp
         include/MainWindow.h
         include/Enums.h
         include/Field.h
@@ -29,6 +32,8 @@ add_executable(miner
         include/MinedCell.h
         include/CleanCell.h
         include/Constants.h
+        include/Server.h
+        include/Client.h
         resources/resources.qrc)
 
 target_include_directories(miner PRIVATE
@@ -37,4 +42,5 @@ target_include_directories(miner PRIVATE
 target_link_libraries(miner PRIVATE
         Qt6::Core
         Qt6::Gui
-        Qt6::Widgets)
+        Qt6::Widgets
+        Qt6::Network)

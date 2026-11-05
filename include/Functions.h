@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include <QString>
+#include <memory>
 
 inline int toInt(const QString& strValue)
 {

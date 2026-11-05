@@ -1,9 +1,13 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "Enums.h"
+
 #include <QMainWindow>
 
 class Field;
+class Server;
+class Client;
 
 class QWidget;
 class QStackedWidget;
@@ -13,6 +17,7 @@ class QHBoxLayout;
 class QLabel;
 class QLineEdit;
 class QGraphicsView;
+class QVBoxLayout;
 
 class MainWindow final : public QMainWindow
 {
@@ -26,26 +31,38 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override = default;
 
-    void startGame() const;
-    void endGame() const;
-    void restartGame() const;
-
 protected:
     void setupCentral();
     void setupMainPage();
     void setupSettingsPage();
+    void setupConnectionPage();
     void setupGamePage();
     void setupInfoBar();
 
+    void connectClient();
+    void connectServer();
+
+    void disconnectClient();
+    void disconnectServer();
+
+    void startGame();
+    void endGame();
+    void restartGame();
+
 private:
+    MainWindowEnums::Mode m_mode{ MainWindowEnums::None };
+    Server* m_server{ nullptr };
+    Client* m_client{ nullptr };
+
     QWidget* m_central{ nullptr };
     QHBoxLayout* m_centralLayout{ nullptr };
     QStackedWidget* m_centralStack{ nullptr };
 
     QWidget* m_mainPage{ nullptr };
-    QGridLayout* m_mainLayout{ nullptr };
+    QVBoxLayout* m_mainLayout{ nullptr };
     QPushButton* m_singleplayerBtn{ nullptr };
-    QPushButton* m_multiplayerBtn{ nullptr };
+    QPushButton* m_multiplayerHostBtn{ nullptr };
+    QPushButton* m_multiplayerClientBtn{ nullptr };
 
     QWidget* m_settingsPage{ nullptr };
     QGridLayout* m_settingsLayout{ nullptr };
@@ -56,6 +73,12 @@ private:
     QLabel* m_minesCountSettingLabel{ nullptr };
     QLineEdit* m_minesCountSettingLineEdit{ nullptr };
     QPushButton* m_acceptSettingsBtn{ nullptr };
+
+    QWidget* m_connectionPage{ nullptr };
+    QGridLayout* m_connectionLayout{ nullptr };
+    QLabel* m_connectionIpLabel{ nullptr };
+    QLineEdit* m_connectionIpLineEdit{ nullptr };
+    QPushButton* m_connectionAcceptBtn{ nullptr };
 
     QWidget* m_gamePage{ nullptr };
     QHBoxLayout* m_gameLayout{ nullptr };
