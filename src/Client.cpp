@@ -1,107 +1,66 @@
 #include "Client.h"
 
-#include <iostream>
+#include "ConnectionWorker.h"
 
-void Client::onReadyRead()
-{
-    m_data.append(readAll());
-    checkData();
-}
+#include <iostream>
 
 void Client::toOnlineLeftClickSlot(const std::int32_t col,
     const std::int32_t row)
 {
-    QByteArray message{};
-
-    QDataStream stream(&message, QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::BigEndian);
-
-    stream << static_cast<std::int32_t>(14);
-    stream << NetworkEnums::LeftClick;
-    stream << m_playerNum;
-    stream << col;
-    stream << row;
-
-    write(message);
+    if (m_connection->state() == QAbstractSocket::ConnectedState)
+        m_connection->sendLeftClick(m_playerNum, col, row);
 }
 
 void Client::toOnlineRightClickSlot(const std::int32_t col,
     const std::int32_t row)
 {
-    QByteArray message{};
+    if (m_connection->state() == QAbstractSocket::ConnectedState)
+        m_connection->sendRightClick(m_playerNum, col, row);
+}
 
-    QDataStream stream(&message, QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::BigEndian);
+void Client::onConnected()
+{
+    std::cerr << "Client: connected to host" << std::endl;
+}
 
-    stream << static_cast<std::int32_t>(14);
-    stream << NetworkEnums::RightClick;
-    stream << m_playerNum;
-    stream << col;
-    stream << row;
+void Client::onDisconnected()
+{
+    std::cerr << "Client: disconnected" << std::endl;
+}
 
-    write(message);
+void Client::receivedLeftClickSlot(const std::int8_t playerNum,
+    const std::int32_t col, const std::int32_t row)
+{
+    emit fromOnlineLeftClickSignal(playerNum, col, row);
+}
+
+void Client::receivedRightClickSlot(const std::int8_t playerNum,
+    const std::int32_t col, const std::int32_t row)
+{
+    emit fromOnlineRightClickSignal(playerNum, col, row);
 }
 
 Client::Client(QObject* parent)
-    : QTcpSocket{ parent }
+    : QObject{ parent }
+    , m_connection{ new ConnectionWorker{ this } }
 {
-    connect(this, &Client::readyRead, this, &Client::onReadyRead);
+    connect(m_connection, &ConnectionWorker::connected,
+            this, &Client::onConnected);
+    connect(m_connection, &ConnectionWorker::disconnected,
+            this, &Client::onDisconnected);
+
+    connect(m_connection, &ConnectionWorker::receivedLeftClickSignal,
+            this, &Client::receivedLeftClickSlot);
+    connect(m_connection, &ConnectionWorker::receivedRightClickSignal,
+            this, &Client::receivedRightClickSlot);
 }
 
-void Client::setPlayerNum(const std::int8_t playerNum) { m_playerNum = playerNum; }
-
-void Client::checkData()
+void Client::setPlayerNum(const std::int8_t playerNum)
 {
-    QDataStream stream{ &m_data, QIODevice::ReadWrite };
-
-    if (m_data.size() < 4)
-        return;
-
-    std::int32_t length{};
-    stream >> length;
-    const std::size_t lengthST{ static_cast<std::size_t>(length) };
-
-    if (m_data.size() >= lengthST)
-    {
-        QByteArray messageArray{ m_data.left(lengthST) };
-        m_data.remove(0, lengthST);
-        processMessage(messageArray);
-    }
+    m_playerNum = playerNum;
 }
 
-void Client::processMessage(QByteArray& messageArray)
+void Client::connectToHost(const QHostAddress& address, quint16 port)
 {
-    QDataStream stream{ &messageArray, QIODevice::ReadWrite };
-
-    std::int32_t length{};
-    std::int8_t type{};
-    std::int8_t playerNum{};
-
-    stream >> length >> type >> playerNum;
-
-    switch (type)
-    {
-        case LeftClick:
-        {
-            std::int32_t col{};
-            std::int32_t row{};
-
-            stream >> col >> row;
-
-            emit fromOnlineLeftClickSignal(playerNum, col, row);
-
-            break;
-        }
-        case RightClick:
-        {
-            std::int32_t col{};
-            std::int32_t row{};
-
-            stream >> col >> row;
-
-            emit fromOnlineRightClickSignal(playerNum, col, row);
-
-            break;
-        }
-    }
+    m_connection->connectToHost(address, port);
 }

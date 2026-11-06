@@ -6,7 +6,7 @@
 #include <QMainWindow>
 
 class Field;
-class Server;
+class Host;
 class Client;
 
 class QWidget;
@@ -40,10 +40,10 @@ protected:
     void setupInfoBar();
 
     void connectClient();
-    void connectServer();
+    void connectHost();
 
     void disconnectClient();
-    void disconnectServer();
+    void disconnectHost();
 
     void startGame();
     void endGame();
@@ -51,7 +51,7 @@ protected:
 
 private:
     MainWindowEnums::Mode m_mode{ MainWindowEnums::None };
-    Server* m_server{ nullptr };
+    Host* m_host{ nullptr };
     Client* m_client{ nullptr };
 
     QWidget* m_central{ nullptr };

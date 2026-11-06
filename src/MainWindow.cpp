@@ -5,7 +5,7 @@
 #include "MainWindow.h"
 
 #include "Field.h"
-#include "Server.h"
+#include "Host.h"
 #include "Client.h"
 
 #include <QWidget>
@@ -30,7 +30,7 @@ void MainWindow::gameOverDefeatSlot()
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow{ parent }
-    , m_server{ new Server{ this } }
+    , m_host{ new Host{ this } }
     , m_client{ new Client{ this } }
 
     , m_central{ new QWidget{ this } }
@@ -112,15 +112,15 @@ void MainWindow::startGame()
 
         if (m_mode == MainWindowEnums::Host)
         {
-            connectServer();
-            m_server->listen(QHostAddress::Any, Constants::NETWORK_PORT);
+            connectHost();
+            m_host->listen(QHostAddress::Any, Constants::NETWORK_PORT);
         }
     }
 
     else if (m_mode == MainWindowEnums::Client)
     {
         connectClient();
-        m_client->connectToHost(m_connectionIpLineEdit->text(),
+        m_client->connectToHost(QHostAddress{ m_connectionIpLineEdit->text() },
             Constants::NETWORK_PORT);
     }
 }
@@ -133,7 +133,7 @@ void MainWindow::endGame()
     switch (m_mode)
     {
     case MainWindowEnums::Host:
-        disconnectServer();
+        disconnectHost();
         break;
 
     case MainWindowEnums::Client:
@@ -297,16 +297,16 @@ void MainWindow::connectClient()
         m_gameField, &Field::fromOnlineRightClickSlot);
 }
 
-void MainWindow::connectServer()
+void MainWindow::connectHost()
 {
     connect(m_gameField, &Field::toOnlineLeftClickSignal,
-        m_server, &Server::toOnlineLeftClickSlot);
+        m_host, &Host::toOnlineLeftClickSlot);
     connect(m_gameField, &Field::toOnlineRightClickSignal,
-        m_server, &Server::toOnlineRightClickSlot);
+        m_host, &Host::toOnlineRightClickSlot);
 
-    connect(m_server, &Server::fromOnlineLeftClickSignal,
+    connect(m_host, &Host::fromOnlineLeftClickSignal,
         m_gameField, &Field::fromOnlineLeftClickSlot);
-    connect(m_server, &Server::fromOnlineRightClickSignal,
+    connect(m_host, &Host::fromOnlineRightClickSignal,
         m_gameField, &Field::fromOnlineRightClickSlot);
 }
 
@@ -323,15 +323,15 @@ void MainWindow::disconnectClient()
         m_gameField, &Field::fromOnlineRightClickSlot);
 }
 
-void MainWindow::disconnectServer()
+void MainWindow::disconnectHost()
 {
     disconnect(m_gameField, &Field::toOnlineLeftClickSignal,
-        m_server, &Server::toOnlineLeftClickSlot);
+        m_host, &Host::toOnlineLeftClickSlot);
     disconnect(m_gameField, &Field::toOnlineRightClickSignal,
-        m_server, &Server::toOnlineRightClickSlot);
+        m_host, &Host::toOnlineRightClickSlot);
 
-    disconnect(m_server, &Server::fromOnlineLeftClickSignal,
+    disconnect(m_host, &Host::fromOnlineLeftClickSignal,
         m_gameField, &Field::fromOnlineLeftClickSlot);
-    disconnect(m_server, &Server::fromOnlineRightClickSignal,
+    disconnect(m_host, &Host::fromOnlineRightClickSignal,
         m_gameField, &Field::fromOnlineRightClickSlot);
 }

@@ -27,6 +27,9 @@ namespace Constants
 
     static quint16 NETWORK_PORT{ 10 };
 
+    static std::int32_t LEFT_CLICK_MESSAGE_LENGTH{ 14 };
+    static std::int32_t RIGHT_CLICK_MESSAGE_LENGTH{ 14 };
+
     static char OBJECT_IN_DEV_STRING[] { "Объект в разработке" };
 }
 

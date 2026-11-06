@@ -22,8 +22,9 @@ add_executable(miner
         src/BasicCell.cpp
         src/MinedCell.cpp
         src/CleanCell.cpp
-        src/Server.cpp
+        src/Host.cpp
         src/Client.cpp
+        src/ConnectionWorker.cpp
         include/MainWindow.h
         include/Enums.h
         include/Field.h
@@ -32,8 +33,9 @@ add_executable(miner
         include/MinedCell.h
         include/CleanCell.h
         include/Constants.h
-        include/Server.h
+        include/Host.h
         include/Client.h
+        include/ConnectionWorker.h
         resources/resources.qrc)
 
 target_include_directories(miner PRIVATE
