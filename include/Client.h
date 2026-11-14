@@ -16,6 +16,7 @@ public: signals:
         std::int32_t row);
     void fromOnlineRightClickSignal(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
+    void fromOnlineFieldSignal(const QByteArray& fieldData);
 
 public slots:
     /* Слоты для получения сетевых команд от поля и последующей отправки в
@@ -33,6 +34,7 @@ private slots:
         std::int32_t row);
     void receivedRightClickSlot(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
+    void receivedFieldSlot(const QByteArray& fieldData);
 
 public:
     explicit Client(QObject* parent = nullptr);

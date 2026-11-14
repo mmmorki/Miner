@@ -9,18 +9,22 @@
 #include <vector>
 #include <random>
 #include <iostream>
+#include <algorithm>
 
+#include "qiodevice.h"
 #include <QMessageBox>
 #include <QGraphicsSceneMouseEvent>
 
-using size_t = std::size_t;
+using std::int8_t;
+using std::int32_t;
+using std::size_t;
 
 void Field::leftClickedCellSlot()
 {
-    auto* basicCell{ dynamic_cast<BasicCell*>(sender()) };
+    auto* const basicCell{ dynamic_cast<BasicCell*>(sender()) };
     emit toOnlineLeftClickSignal(basicCell->getCol(), basicCell->getRow());
 
-    if (auto* const cleanCell{ dynamic_cast<CleanCell*>(sender()) };
+    if (auto* const cleanCell{ dynamic_cast<CleanCell*>(basicCell) };
         cleanCell)
     {
         if (cleanCell->isChecked())
@@ -35,18 +39,43 @@ void Field::leftClickedCellSlot()
         minedCell->check();
 }
 
-void Field::fromOnlineLeftClickSlot(const std::int8_t playerNum,
-    const std::int32_t col, const std::int32_t row)
+void Field::rightClickedCellSlot()
+{
+    auto* const basicCell{ static_cast<BasicCell*>(sender()) };
+    emit toOnlineRightClickSignal(basicCell->getCol(), basicCell->getRow());
+
+    if (basicCell->isMarked())
+        basicCell->unmark();
+
+    else
+        basicCell->mark();
+}
+
+void Field::fromOnlineLeftClickSlot(const int8_t playerNum,
+    const int32_t col, const int32_t row)
 {
     const size_t colST{ static_cast<size_t>(col) };
     const size_t rowST{ static_cast<size_t>(row) };
 
-    BasicCell* cell{ m_cellsData[colST][rowST] };
-    cell->leftClickedCellSignal();
+    auto* const basicCell{ m_cellsData[colST][rowST] };
+
+    if (auto* const cleanCell{ dynamic_cast<CleanCell*>(basicCell) };
+        cleanCell)
+    {
+        if (cleanCell->isChecked())
+            checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
+
+        else
+            cleanCell->check();
+    }
+
+    else if (auto* const minedCell{ dynamic_cast<MinedCell*>(basicCell) };
+        minedCell)
+        minedCell->check();
 }
 
-void Field::fromOnlineRightClickSlot(const std::int8_t playerNum,
-    const std::int32_t col, const std::int32_t row)
+void Field::fromOnlineRightClickSlot(const int8_t playerNum,
+    const int32_t col, const int32_t row)
 {
     const size_t colST{ static_cast<size_t>(col) };
     const size_t rowST{ static_cast<size_t>(row) };
@@ -61,97 +90,143 @@ void Field::fromOnlineRightClickSlot(const std::int8_t playerNum,
 
 void Field::cellCheckedSlot()
 {
-    if (const auto* const cleanCell{ dynamic_cast<CleanCell*>(sender()) };
+    const auto* const cell{ static_cast<BasicCell*>(sender()) };
+    const int32_t col{ cell->getCol() };
+    const int32_t row{ cell->getRow() };
+
+    if (const auto* const cleanCell{ dynamic_cast<const CleanCell*>(cell) };
         cleanCell)
     {
         if (--m_cleanCellsLeft == 0)
             victory();
 
         if (cleanCell->getMinesAroundCount() == 0)
-            checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
+            checkCellsAround(col, row);
     }
 
-    else if (const auto* const minedCell{ dynamic_cast<MinedCell*>(sender()) };
+    else if (const auto* const minedCell{ dynamic_cast<const MinedCell*>(cell) };
         minedCell)
         defeat();
+
+    m_checkedMap.push_back(toMapNum(col, row));
 }
 
-Field::Field(QObject* parent)
+Field::Field(const int32_t widthCells, const int32_t heightCells,
+             const int32_t minesCount, QObject* parent)
+    : QGraphicsScene{ parent }
+    , m_fieldWidthCells{ widthCells }
+    , m_fieldHeightCells{ heightCells }
+    , m_minesCount{ minesCount }
+    , m_cleanCellsLeft{ widthCells * heightCells - minesCount }
+{
+    generateMinesMap();
+    generate();
+}
+
+Field::Field(const QByteArray& data, QObject* parent)
     : QGraphicsScene{ parent }
 {
+    QDataStream dataStream{ data };
+    dataStream.setByteOrder(QDataStream::BigEndian);
+
+    dataStream >> m_fieldWidthCells >> m_fieldHeightCells;
+
+    int32_t minesMapLength{};
+    dataStream >> minesMapLength;
+    for (int32_t bytes{ 0 }; bytes < minesMapLength; bytes += 4)
+    {
+        int32_t num{};
+        dataStream >> num;
+        m_minesMap.push_back(num);
+    }
+
+    m_minesCount = minesMapLength;
+    m_cleanCellsLeft = m_fieldWidthCells * m_fieldHeightCells - m_minesCount;
+
+    int32_t checkedMapLength{};
+    dataStream >> checkedMapLength;
+    for (int32_t bytes{ 0 }; bytes < checkedMapLength; bytes += 4)
+    {
+        int32_t num{};
+        dataStream >> num;
+        m_checkedMap.push_back(num);
+    }
+
+    int32_t markedMapLength{};
+    dataStream >> markedMapLength;
+    for (int32_t bytes{ 0 }; bytes < markedMapLength; bytes += 4)
+    {
+        int32_t num{};
+        dataStream >> num;
+        m_markedMap.push_back(num);
+    }
+
+    generate();
+
+    int32_t timer{ 0 };
+
+    for (int32_t col{ 0 }; col < m_fieldWidthCells; ++col)
+        for (int32_t row{ 0 }; row < m_fieldHeightCells; ++row)
+        {
+            size_t colST{ static_cast<size_t>(col) };
+            size_t rowST{ static_cast<size_t>(row) };
+
+            if (contains<int>(m_checkedMap, timer))
+                m_cellsData[col][row]->check();
+
+            if (contains<int>(m_markedMap, timer))
+                m_cellsData[col][row]->mark();
+
+            ++timer;
+        }
 }
 
 void Field::clearData()
 {
+    for (const std::vector<BasicCell*>& col : m_cellsData)
+        for (BasicCell* cell : col)
+            cell->deleteLater();
+
     m_cellsData.clear();
+
     m_minesMap.clear();
+    m_checkedMap.clear();
+    m_markedMap.clear();
 }
 
 void Field::block() { m_blocked = true; }
 
 void Field::unblock() { m_blocked = false; }
 
-void Field::setFieldSizeCells(const int fieldWidthCells,
-                              const int fieldHeightCells)
-{
-    m_fieldWidthCells = fieldWidthCells;
-    m_fieldHeightCells = fieldHeightCells;
-
-    const qreal fieldWidthPx{ m_fieldWidthCells * Constants::CELL_WIDTH_PX };
-    const qreal fieldHeightPx{ m_fieldHeightCells * Constants::CELL_HEIGHT_PX };
-    setSceneRect(0, 0, fieldWidthPx, fieldHeightPx);
-}
-
-void Field::setMinesCount(const int minesCount)
-{
-    m_minesCount = minesCount;
-    m_flagsLeft = minesCount;
-
-    m_minesMap.reserve(m_minesCount);
-}
-
 void Field::generate()
 {
-    clearData();
-    generateMinesMap();
+    int32_t timer{ 0 };
 
-    m_cleanCellsLeft = m_fieldWidthCells * m_fieldHeightCells - m_minesCount;
-
-    int timer{ 0 };
-
-    for (int col{ 0 }; col < m_fieldWidthCells; ++col)
+    for (int32_t col{ 0 }; col < m_fieldWidthCells; ++col)
     {
         std::vector<BasicCell*> currentCol{};
 
-        for (int row{ 0 }; row < m_fieldHeightCells; ++row)
+        for (int32_t row{ 0 }; row < m_fieldHeightCells; ++row)
         {
-            if (contains<int>(m_minesMap, timer))
-            {
-                auto* cell{ new MinedCell{ col, row } };
+            BasicCell* cell{ nullptr };
 
-                addItem(cell);
-                cell->setPos(col * Constants::CELL_WIDTH_PX,
-                             row * Constants::CELL_HEIGHT_PX);
-                currentCol.push_back(cell);
-                connect(cell, &MinedCell::leftClickedCellSignal,
-                        this, &Field::leftClickedCellSlot);
-                connect(cell, &MinedCell::cellCheckedSignal,
-                        this, &Field::cellCheckedSlot);
-            }
+            if (contains<int>(m_minesMap, timer))
+                cell = new MinedCell{ col, row };
 
             else
-            {
-                auto* cell{ new CleanCell{ col, row } };
+                cell = new CleanCell{ col, row };
 
-                addItem(cell);
-                cell->setPos(col * Constants::CELL_WIDTH_PX,
-                             row * Constants::CELL_HEIGHT_PX);
-                currentCol.push_back(cell);
-                connect(cell, &CleanCell::leftClickedCellSignal,
-                        this, &Field::leftClickedCellSlot);
-                connect(cell, &CleanCell::cellCheckedSignal,
-                        this, &Field::cellCheckedSlot);
-            }
+            addItem(cell);
+            currentCol.push_back(cell);
+            cell->setPos(col * Constants::CELL_WIDTH_PX,
+                         row * Constants::CELL_HEIGHT_PX);
+
+            connect(cell, &BasicCell::leftClickedCellSignal,
+                    this, &Field::leftClickedCellSlot);
+            connect(cell, &BasicCell::rightClickedCellSignal,
+                    this, &Field::rightClickedCellSlot);
+            connect(cell, &BasicCell::cellCheckedSignal,
+                    this, &Field::cellCheckedSlot);
 
             ++timer;
         }
@@ -180,18 +255,16 @@ void Field::generateMinesMap()
     }
 }
 
-void Field::arrangeNums() const
+void Field::arrangeNums()
 {
     for (const int num : m_minesMap)
     {
-        const int col{ num / m_fieldHeightCells };
-        const int row{ num % m_fieldHeightCells };
-
+        const auto [col, row] { fromMapNum(num) };
         incrementCellsNumsAround(col, row);
     }
 }
 
-void Field::incrementCellsNumsAround(const int col, const int row) const
+void Field::incrementCellsNumsAround(const int col, const int row)
 {
     for (int colMod{ -1 }; colMod <= 1; ++colMod)
         for (int rowMod{ -1 }; rowMod <= 1; ++rowMod)
@@ -214,7 +287,7 @@ void Field::incrementCellsNumsAround(const int col, const int row) const
         }
 }
 
-void Field::checkCellsAround(const int col, const int row) const
+void Field::checkCellsAround(const int col, const int row)
 {
     for (int colMod{ -1 }; colMod <= 1; ++colMod)
         for (int rowMod{ -1 }; rowMod <= 1; ++rowMod)
@@ -282,4 +355,45 @@ void Field::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void Field::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
     event->accept();
+}
+
+int32_t Field::toMapNum(const int32_t col, const int32_t row) const
+{
+    return col * m_fieldHeightCells + row;
+}
+
+std::pair<int32_t, int32_t> Field::fromMapNum(const int32_t mapNum) const
+{
+    const int32_t col{ mapNum / m_fieldHeightCells };
+    const int32_t row{ mapNum % m_fieldHeightCells };
+
+    return std::make_pair(col, row);
+}
+
+QByteArray Field::toByteArray() const
+{
+    QByteArray dataArray{};
+
+    QDataStream dataStream(&dataArray, QIODevice::WriteOnly);
+    dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
+
+    dataStream << m_fieldWidthCells << m_fieldHeightCells;
+
+    const int32_t minesMapLength{ static_cast<int32_t>(m_minesMap.size()) * 4 };
+    dataStream << minesMapLength;
+    for (const int32_t num : m_minesMap)
+        dataStream << num;
+
+    const int32_t checkedMapLength{ static_cast<int32_t>(m_checkedMap.size()) * 4 };
+    dataStream << checkedMapLength;
+    for (const int32_t num : m_checkedMap)
+        dataStream << num;
+
+    const int32_t markedMapLength{ static_cast<int32_t>(m_markedMap.size()) * 4};
+    dataStream << markedMapLength;
+    for (const int32_t num : m_markedMap)
+        dataStream << num;
+
+    return dataArray;
 }

@@ -10,6 +10,8 @@ class Host final : public QTcpServer
     Q_OBJECT
 
 public: signals:
+    void clientWaitFieldSignal();
+
     /* Сигналы для отправки полученных от сокета команд на поле */
     void fromOnlineLeftClickSignal(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
@@ -36,6 +38,8 @@ private slots:
 public:
     explicit Host(QObject* parent = nullptr);
     ~Host() override = default;
+
+    void shareField(const QByteArray& fieldData) const;
 
 private:
     std::vector<ConnectionWorker*> m_connections{};

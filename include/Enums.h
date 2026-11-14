@@ -10,6 +10,7 @@ namespace MainWindowEnums
         Main,
         Settings,
         Connection,
+        WaitConnection,
         Game,
         MaxPage,
     };

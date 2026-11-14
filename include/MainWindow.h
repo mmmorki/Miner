@@ -27,6 +27,10 @@ private slots:
     void gameOverVictorySlot();
     void gameOverDefeatSlot();
 
+    void fromOnlineFieldSlot(const QByteArray& data);
+
+    void clientWaitFieldSlot();
+
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override = default;
@@ -36,14 +40,21 @@ protected:
     void setupMainPage();
     void setupSettingsPage();
     void setupConnectionPage();
+    void setupWaitConnectionPage();
     void setupGamePage();
     void setupInfoBar();
 
-    void connectClient();
-    void connectHost();
+    void startClient();
+    void startHost();
 
-    void disconnectClient();
-    void disconnectHost();
+    void stopClient();
+    void stopHost();
+
+    void connectClientToField();
+    void connectHostToField();
+
+    void disconnectClientFromField();
+    void disconnectHostFromField();
 
     void startGame();
     void endGame();
@@ -73,12 +84,18 @@ private:
     QLabel* m_minesCountSettingLabel{ nullptr };
     QLineEdit* m_minesCountSettingLineEdit{ nullptr };
     QPushButton* m_acceptSettingsBtn{ nullptr };
+    QPushButton* m_settingsBackBtn{ nullptr };
 
     QWidget* m_connectionPage{ nullptr };
     QGridLayout* m_connectionLayout{ nullptr };
     QLabel* m_connectionIpLabel{ nullptr };
     QLineEdit* m_connectionIpLineEdit{ nullptr };
     QPushButton* m_connectionAcceptBtn{ nullptr };
+    QPushButton* m_connectionBackBtn{ nullptr };
+
+    QWidget* m_waitConnectionPage{ nullptr };
+    QVBoxLayout* m_waitConnectionLayout{ nullptr };
+    QLabel* m_waitConnectionLabel{ nullptr };
 
     QWidget* m_gamePage{ nullptr };
     QHBoxLayout* m_gameLayout{ nullptr };

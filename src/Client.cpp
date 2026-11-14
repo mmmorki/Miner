@@ -40,6 +40,11 @@ void Client::receivedRightClickSlot(const std::int8_t playerNum,
     emit fromOnlineRightClickSignal(playerNum, col, row);
 }
 
+void Client::receivedFieldSlot(const QByteArray& fieldData)
+{
+    emit fromOnlineFieldSignal(fieldData);
+}
+
 Client::Client(QObject* parent)
     : QObject{ parent }
     , m_connection{ new ConnectionWorker{ this } }
@@ -53,6 +58,8 @@ Client::Client(QObject* parent)
             this, &Client::receivedLeftClickSlot);
     connect(m_connection, &ConnectionWorker::receivedRightClickSignal,
             this, &Client::receivedRightClickSlot);
+    connect(m_connection, &ConnectionWorker::receivedFieldSignal,
+            this, &Client::receivedFieldSlot);
 }
 
 void Client::setPlayerNum(const std::int8_t playerNum)

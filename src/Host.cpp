@@ -30,6 +30,8 @@ void Host::incomingConnection(const qintptr descriptor)
             this, &Host::receivedRightClickSlot);
 
     m_connections.push_back(connection);
+
+    emit clientWaitFieldSignal();
 }
 
 void Host::onDisconnected()
@@ -58,4 +60,11 @@ void Host::receivedRightClickSlot(const std::int8_t playerNum,
 Host::Host(QObject* parent)
     : QTcpServer{ parent }
 {
+}
+
+void Host::shareField(const QByteArray& fieldData) const
+{
+    for (ConnectionWorker* connection : m_connections)
+        if (connection->state() == QAbstractSocket::ConnectedState)
+            connection->sendField(fieldData);
 }

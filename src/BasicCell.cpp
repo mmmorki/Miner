@@ -58,13 +58,7 @@ void BasicCell::mousePressEvent(QGraphicsSceneMouseEvent* event)
         emit leftClickedCellSignal();
 
     else if (event->button() == Qt::RightButton)
-    {
-        if (isMarked())
-            unmark();
-
-        else
-            mark();
-    }
+        emit rightClickedCellSignal();
 
     event->accept();
 }

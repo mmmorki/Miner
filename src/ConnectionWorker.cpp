@@ -50,6 +50,22 @@ void ConnectionWorker::sendRightClick(const std::int8_t playerNum,
     write(message);
 }
 
+void ConnectionWorker::sendField(const QByteArray& fieldData)
+{
+    QByteArray message{};
+
+    QDataStream dataStream{ &message, QIODevice::WriteOnly };
+    dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
+
+    const std::int32_t length{ 5 + static_cast<std::int32_t>(fieldData.size()) };
+    dataStream << length;
+    dataStream << NetworkEnums::ShareField;
+    dataStream.writeRawData(fieldData.constData(), fieldData.size());
+
+    write(message);
+}
+
 void ConnectionWorker::checkDataReady()
 {
     while (true)
@@ -83,25 +99,26 @@ void ConnectionWorker::processMessage(QByteArray& message)
 
     std::int32_t length{};
     NetworkEnums::MessageType messageType{};
-    std::int8_t playerNum{};
+
 
     dataStream >> length;
     dataStream >> messageType;
-    dataStream >> playerNum;
 
-    std::cerr << length << ' ' << messageType << ' ' << playerNum << ' ';
+    std::cerr << length << ' ' << messageType << ' ';
 
     switch (messageType)
     {
         case NetworkEnums::LeftClick:
         {
+            std::int8_t playerNum{};
             std::int32_t col{};
             std::int32_t row{};
 
-            dataStream >> col;
-            dataStream >> row;
+            dataStream >> playerNum;
+            dataStream >> col >> row;
 
-            std::cerr << col << ' ' << row << std::endl;
+            std::cerr << "Left click" << std::endl;
+            std::cerr << playerNum << ' ' << col << ' ' << row << std::endl;
 
             emit receivedLeftClickSignal(playerNum, col, row);
             break;
@@ -109,15 +126,24 @@ void ConnectionWorker::processMessage(QByteArray& message)
 
         case NetworkEnums::RightClick:
         {
+            std::int8_t playerNum{};
             std::int32_t col{};
             std::int32_t row{};
 
-            dataStream >> col;
-            dataStream >> row;
+            dataStream >> playerNum;
+            dataStream >> col >> row;
 
-            std::cerr << col << ' ' << row << std::endl;
+            std::cerr << "Right click" << std::endl;
+            std::cerr << playerNum << ' ' << col << ' ' << row << std::endl;
 
             emit receivedRightClickSignal(playerNum, col, row);
+            break;
+        }
+
+        case NetworkEnums::ShareField:
+        {
+            std::cerr << "Share field" << std::endl;
+            emit receivedFieldSignal(message.sliced(5));
             break;
         }
 
