@@ -68,6 +68,21 @@ void ConnectionWorker::sendField(const QByteArray& fieldData)
     write(message);
 }
 
+void ConnectionWorker::sendTimer(const std::int64_t accumulatedTime)
+{
+    QByteArray message{};
+
+    QDataStream dataStream{ &message, QIODevice::WriteOnly };
+    dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
+
+    dataStream << Constants::SHARE_TIMER_MESSAGE_LENGTH;
+    dataStream << NetworkEnums::ShareTimer;
+    dataStream << accumulatedTime;
+
+    write(message);
+}
+
 void ConnectionWorker::sendWaitField(const std::int8_t playerNum)
 {
     QByteArray message{};
@@ -178,6 +193,18 @@ void ConnectionWorker::processMessage(QByteArray& message)
         {
             std::cerr << "Share field" << std::endl;
             emit receivedFieldSignal(message.sliced(5));
+            break;
+        }
+
+        case NetworkEnums::ShareTimer:
+        {
+            std::int64_t accumulatedTime{};
+
+            dataStream >> accumulatedTime;
+
+            std::cerr << "Share timer " << accumulatedTime << std::endl;
+
+            emit receivedTimerSignal(accumulatedTime);
             break;
         }
 

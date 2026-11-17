@@ -42,6 +42,7 @@ public:
     ~Host() override = default;
 
     void shareField(const QByteArray& fieldData) const;
+    void shareTimer(std::int64_t accumulatedTime) const;
     void restartGame() const;
 
 private:

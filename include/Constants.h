@@ -31,6 +31,7 @@ namespace Constants
     static std::int32_t RIGHT_CLICK_MESSAGE_LENGTH{ 14 };
     static std::int32_t WAIT_FIELD_MESSAGE_LENGTH{ 6 };
     static std::int32_t RESTART_GAME_MESSAGE_LENGTH{ 6 };
+    static std::int32_t SHARE_TIMER_MESSAGE_LENGTH{ 13 };
 
     static char OBJECT_IN_DEV_STRING[] { "Объект в разработке" };
 }

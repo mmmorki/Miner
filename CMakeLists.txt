@@ -25,6 +25,7 @@ add_executable(miner
         src/Host.cpp
         src/Client.cpp
         src/ConnectionWorker.cpp
+        src/Timer.cpp
         include/MainWindow.h
         include/Enums.h
         include/Field.h
@@ -36,6 +37,7 @@ add_executable(miner
         include/Host.h
         include/Client.h
         include/ConnectionWorker.h
+        include/Timer.h
         resources/resources.qrc)
 
 target_include_directories(miner PRIVATE

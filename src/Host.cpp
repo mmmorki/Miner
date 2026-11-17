@@ -81,6 +81,13 @@ void Host::shareField(const QByteArray& fieldData) const
             connection->sendField(fieldData);
 }
 
+void Host::shareTimer(const std::int64_t accumulatedTime) const
+{
+    for (ConnectionWorker* connection : m_connections)
+        if (connection->state() == QAbstractSocket::ConnectedState)
+            connection->sendTimer(accumulatedTime);
+}
+
 void Host::restartGame() const
 {
     for (ConnectionWorker* connection : m_connections)

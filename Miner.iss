@@ -1,7 +1,7 @@
 [Setup]
 AppName=Miner
-AppVersion=0.1
-OutputBaseFilename=MinerSetup
+AppVersion=0.2
+OutputBaseFilename=MinerSetup_0_2
 DefaultDirName={autopf}\Miner
 DefaultGroupName=Miner
 

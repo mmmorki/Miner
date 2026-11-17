@@ -40,6 +40,7 @@ namespace NetworkEnums
         LeftClick,
         RightClick,
         ShareField,
+        ShareTimer,
         WaitField,
         RestartGame,
     };

@@ -17,6 +17,7 @@ public: signals:
     void fromOnlineRightClickSignal(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
     void fromOnlineFieldSignal(const QByteArray& fieldData);
+    void fromOnlineTimerSignal(std::int64_t accumulatedTime);
     void fromOnlineRestartGameSignal(std::int8_t playerNum);
 
 public slots:
@@ -36,6 +37,7 @@ private slots:
     void receivedRightClickSlot(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
     void receivedFieldSlot(const QByteArray& fieldData);
+    void receivedTimerSlot(std::int64_t accumulatedTime);
     void receivedRestartGameSlot(std::int8_t playerNum);
 
 public:

@@ -55,6 +55,13 @@ void Client::receivedFieldSlot(const QByteArray& fieldData)
     emit fromOnlineFieldSignal(fieldData);
 }
 
+void Client::receivedTimerSlot(const std::int64_t accumulatedTime)
+{
+    std::cerr << "Income timer" << std::endl;
+
+    emit fromOnlineTimerSignal(accumulatedTime);
+}
+
 void Client::receivedRestartGameSlot(const std::int8_t playerNum)
 {
     std::cerr << "Player " << playerNum << " restart the game" << std::endl;
@@ -77,6 +84,8 @@ Client::Client(QObject* parent)
             this, &Client::receivedRightClickSlot);
     connect(m_connection, &ConnectionWorker::receivedFieldSignal,
             this, &Client::receivedFieldSlot);
+    connect(m_connection, &ConnectionWorker::receivedTimerSignal,
+            this, &Client::receivedTimerSlot);
     connect(m_connection, &ConnectionWorker::receivedRestartGameSignal,
             this, &Client::receivedRestartGameSlot);
 }

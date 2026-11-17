@@ -8,6 +8,7 @@
 class Field;
 class Host;
 class Client;
+class Timer;
 
 class QWidget;
 class QStackedWidget;
@@ -28,6 +29,7 @@ private slots:
     void gameOverDefeatSlot();
 
     void fromOnlineShareFieldSlot(const QByteArray& data);
+    void fromOnlineShareTimerSlot(std::int64_t accumulatedTime);
     void fromOnlineRestartGameSlot(std::int8_t playerNum);
     void fromOnlineWaitFieldSlot(std::int8_t playerNum);
 
@@ -105,6 +107,7 @@ private:
 
     QWidget* m_infoBarStatisticsPage{ nullptr };
     QGridLayout* m_infoBarStatisticsLayout{ nullptr };
+    Timer* m_timer{ nullptr };
 
     QWidget* m_infoBarVictoryPage{ nullptr };
     QGridLayout* m_infoBarVictoryLayout{ nullptr };
