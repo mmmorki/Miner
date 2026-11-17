@@ -30,7 +30,7 @@ void MainWindow::gameOverDefeatSlot()
     m_infoBar->setCurrentIndex(MainWindowEnums::Defeat);
 }
 
-void MainWindow::fromOnlineFieldSlot(const QByteArray& data)
+void MainWindow::fromOnlineShareFieldSlot(const QByteArray& data)
 {
     if (m_gameField)
         m_gameField->deleteLater();
@@ -48,7 +48,38 @@ void MainWindow::fromOnlineFieldSlot(const QByteArray& data)
     m_infoBar->setCurrentIndex(MainWindowEnums::Statistics);
 }
 
-void MainWindow::clientWaitFieldSlot()
+void MainWindow::fromOnlineRestartGameSlot(const std::int8_t playerNum)
+{
+    if (m_mode == MainWindowEnums::Host)
+    {
+        const int fieldWidth{ toInt(m_fieldWidthSettingLineEdit->text()) };
+        const int fieldHeight{ toInt(m_fieldHeightSettingLineEdit->text()) };
+        const int minesCount{ toInt(m_minesCountSettingLineEdit->text()) };
+
+        if (m_gameField)
+            m_gameField->deleteLater();
+
+        m_gameField = new Field{ fieldWidth, fieldHeight, minesCount, this };
+        m_gameView->setScene(m_gameField);
+
+        connect(m_gameField, &Field::gameOverVictorySignal,
+            this, &MainWindow::gameOverVictorySlot);
+        connect(m_gameField, &Field::gameOverDefeatSignal,
+                this, &MainWindow::gameOverDefeatSlot);
+
+        m_infoBar->setCurrentIndex(MainWindowEnums::Statistics);
+
+        connectHostToField();
+    }
+
+    else if (m_mode == MainWindowEnums::Client)
+    {
+        m_centralStack->setCurrentIndex(MainWindowEnums::WaitConnection);
+        m_client->waitField();
+    }
+}
+
+void MainWindow::fromOnlineWaitFieldSlot(const std::int8_t playerNum)
 {
     const QByteArray fieldData{ m_gameField->toByteArray() };
     m_host->shareField(fieldData);
@@ -173,6 +204,14 @@ void MainWindow::endGame()
     case MainWindowEnums::Single:
     {
         m_gameField->deleteLater();
+
+        m_fieldWidthSettingLineEdit->setText(
+                Constants::DEFAULT_FIELD_WIDTH_CELLS_STR);
+        m_fieldHeightSettingLineEdit->setText(
+            Constants::DEFAULT_FIELD_HEIGHT_CELLS_STR);
+        m_minesCountSettingLineEdit->setText(
+            Constants::DEFAULT_MINES_COUNT_STR);
+
         break;
     }
 
@@ -181,6 +220,14 @@ void MainWindow::endGame()
         disconnectHostFromField();
         stopHost();
         m_gameField->deleteLater();
+
+        m_fieldWidthSettingLineEdit->setText(
+                Constants::DEFAULT_FIELD_WIDTH_CELLS_STR);
+        m_fieldHeightSettingLineEdit->setText(
+            Constants::DEFAULT_FIELD_HEIGHT_CELLS_STR);
+        m_minesCountSettingLineEdit->setText(
+            Constants::DEFAULT_MINES_COUNT_STR);
+
         break;
     }
 
@@ -200,9 +247,41 @@ void MainWindow::endGame()
 
 void MainWindow::restartGame()
 {
-    m_gameField->unblock();
+    if (m_mode == MainWindowEnums::Single || m_mode == MainWindowEnums::Host)
+    {
+        const int fieldWidth{ toInt(m_fieldWidthSettingLineEdit->text()) };
+        const int fieldHeight{ toInt(m_fieldHeightSettingLineEdit->text()) };
+        const int minesCount{ toInt(m_minesCountSettingLineEdit->text()) };
 
-    m_infoBar->setCurrentIndex(MainWindowEnums::Statistics);
+        if (m_gameField)
+            m_gameField->deleteLater();
+
+        m_gameField = new Field{ fieldWidth, fieldHeight, minesCount, this };
+        m_gameView->setScene(m_gameField);
+
+        connect(m_gameField, &Field::gameOverVictorySignal,
+            this, &MainWindow::gameOverVictorySlot);
+        connect(m_gameField, &Field::gameOverDefeatSignal,
+                this, &MainWindow::gameOverDefeatSlot);
+
+        m_infoBar->setCurrentIndex(MainWindowEnums::Statistics);
+
+        if (m_mode == MainWindowEnums::Host)
+        {
+            connectHostToField();
+            m_host->restartGame();
+        }
+    }
+
+    else if (m_mode == MainWindowEnums::Client)
+    {
+        if (m_gameField)
+            m_gameField->deleteLater();
+
+        m_centralStack->setCurrentIndex(MainWindowEnums::WaitConnection);
+        m_client->restartGame();
+        m_client->waitField();
+    }
 }
 
 void MainWindow::setupCentral()
@@ -258,24 +337,13 @@ void MainWindow::setupSettingsPage()
     m_settingsLayout->addWidget(m_acceptSettingsBtn, 3, 0, 1, 2);
     m_settingsLayout->addWidget(m_settingsBackBtn, 4, 0, 1, 2);
 
-    auto acceptSettingsBtnLambda{
-        [this] {
-            startGame();
-
-            m_fieldWidthSettingLineEdit->setText(
-                Constants::DEFAULT_FIELD_WIDTH_CELLS_STR);
-            m_fieldHeightSettingLineEdit->setText(
-                Constants::DEFAULT_FIELD_HEIGHT_CELLS_STR);
-            m_minesCountSettingLineEdit->setText(
-                Constants::DEFAULT_MINES_COUNT_STR);
-        }
-    };
-    connect(m_acceptSettingsBtn, &QPushButton::clicked, acceptSettingsBtnLambda);
+    connect(m_acceptSettingsBtn, &QPushButton::clicked,
+            this, &MainWindow::startGame);
 
     auto settingsBackBtnLambda{
         [this] {
             m_mode = MainWindowEnums::None;
-            m_centralStack->setCurrentIndex(MainWindowEnums::Settings);
+            m_centralStack->setCurrentIndex(MainWindowEnums::Main);
         }
     };
     connect(m_settingsBackBtn, &QPushButton::clicked, settingsBackBtnLambda);
@@ -358,7 +426,9 @@ void MainWindow::setupInfoBar()
 void MainWindow::startClient()
 {
     connect(m_client, &Client::fromOnlineFieldSignal,
-            this, &MainWindow::fromOnlineFieldSlot);
+            this, &MainWindow::fromOnlineShareFieldSlot);
+    connect(m_client, &Client::fromOnlineRestartGameSignal,
+            this, &MainWindow::fromOnlineRestartGameSlot);
 }
 
 void MainWindow::connectClientToField()
@@ -376,8 +446,10 @@ void MainWindow::connectClientToField()
 
 void MainWindow::startHost()
 {
-    connect(m_host, &Host::clientWaitFieldSignal,
-            this, &MainWindow::clientWaitFieldSlot);
+    connect(m_host, &Host::fromOnlineWaitFieldSignal,
+            this, &MainWindow::fromOnlineWaitFieldSlot);
+    connect(m_host, &Host::fromOnlineRestartGameSignal,
+            this, &MainWindow::fromOnlineRestartGameSlot);
 }
 
 void MainWindow::connectHostToField()
@@ -396,7 +468,9 @@ void MainWindow::connectHostToField()
 void MainWindow::stopClient()
 {
     disconnect(m_client, &Client::fromOnlineFieldSignal,
-            this, &MainWindow::fromOnlineFieldSlot);
+            this, &MainWindow::fromOnlineShareFieldSlot);
+    disconnect(m_client, &Client::fromOnlineRestartGameSignal,
+            this, &MainWindow::fromOnlineRestartGameSlot);
 }
 
 void MainWindow::disconnectClientFromField()
@@ -414,8 +488,10 @@ void MainWindow::disconnectClientFromField()
 
 void MainWindow::stopHost()
 {
-    disconnect(m_host, &Host::clientWaitFieldSignal,
-            this, &MainWindow::clientWaitFieldSlot);
+    disconnect(m_host, &Host::fromOnlineWaitFieldSignal,
+            this, &MainWindow::fromOnlineWaitFieldSlot);
+    disconnect(m_host, &Host::fromOnlineRestartGameSignal,
+            this, &MainWindow::fromOnlineRestartGameSlot);
 }
 
 void MainWindow::disconnectHostFromField()

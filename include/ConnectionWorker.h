@@ -12,6 +12,8 @@
  *              ****(minesMapLength) ****...(mines)
  *              ****(checkedMapLength) ****...(checked)
  *              ****(markedMapLength) ****...(marked)
+ * WaitField:   ****(length) *(type) *(playerNum)
+ * RestartGame: ****(length) *(type) *(playerNum)
  */
 
 class ConnectionWorker final : public QTcpSocket
@@ -24,6 +26,8 @@ public: signals:
     void receivedRightClickSignal(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
     void receivedFieldSignal(const QByteArray& fieldData);
+    void receivedWaitFieldSignal(std::int8_t playerNum);
+    void receivedRestartGameSignal(std::int8_t playerNum);
 
 private slots:
     void onReadyRead();
@@ -36,7 +40,9 @@ public:
         std::int32_t row);
     void sendRightClick(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
-    void sendField(const QByteArray& fieldData);;
+    void sendField(const QByteArray& fieldData);
+    void sendWaitField(std::int8_t playerNum);
+    void sendRestartGame(std::int8_t playerNum);
 
 protected:
     void checkDataReady();

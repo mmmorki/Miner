@@ -27,9 +27,9 @@ private slots:
     void gameOverVictorySlot();
     void gameOverDefeatSlot();
 
-    void fromOnlineFieldSlot(const QByteArray& data);
-
-    void clientWaitFieldSlot();
+    void fromOnlineShareFieldSlot(const QByteArray& data);
+    void fromOnlineRestartGameSlot(std::int8_t playerNum);
+    void fromOnlineWaitFieldSlot(std::int8_t playerNum);
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);

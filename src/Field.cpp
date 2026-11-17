@@ -28,7 +28,7 @@ void Field::leftClickedCellSlot()
         cleanCell)
     {
         if (cleanCell->isChecked())
-            checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
+            openCellsArea(cleanCell);
 
         else
             cleanCell->check();
@@ -63,7 +63,7 @@ void Field::fromOnlineLeftClickSlot(const int8_t playerNum,
         cleanCell)
     {
         if (cleanCell->isChecked())
-            checkCellsAround(cleanCell->getCol(), cleanCell->getRow());
+            openCellsArea(cleanCell);
 
         else
             cleanCell->check();
@@ -90,18 +90,24 @@ void Field::fromOnlineRightClickSlot(const int8_t playerNum,
 
 void Field::cellCheckedSlot()
 {
-    const auto* const cell{ static_cast<BasicCell*>(sender()) };
+    auto* const cell{ static_cast<BasicCell*>(sender()) };
     const int32_t col{ cell->getCol() };
     const int32_t row{ cell->getRow() };
 
-    if (const auto* const cleanCell{ dynamic_cast<const CleanCell*>(cell) };
+    if (auto* const cleanCell{ dynamic_cast<CleanCell*>(cell) };
         cleanCell)
     {
         if (--m_cleanCellsLeft == 0)
             victory();
 
         if (cleanCell->getMinesAroundCount() == 0)
-            checkCellsAround(col, row);
+        {
+            if (!m_openingCells)
+                openCellsArea(cleanCell);
+
+            else
+                checkCellsAround(col, row);
+        }
     }
 
     else if (const auto* const minedCell{ dynamic_cast<const MinedCell*>(cell) };
@@ -109,6 +115,27 @@ void Field::cellCheckedSlot()
         defeat();
 
     m_checkedMap.push_back(toMapNum(col, row));
+}
+
+void Field::cellMarkedSlot()
+{
+    const auto* const cell{ static_cast<const BasicCell*>(sender()) };
+    const int32_t col{ cell->getCol() };
+    const int32_t row{ cell->getRow() };
+
+    m_markedMap.push_back(toMapNum(col, row));
+}
+
+void Field::cellUnmarkedSlot()
+{
+    const auto* const cell{ static_cast<const BasicCell*>(sender()) };
+    const int32_t col{ cell->getCol() };
+    const int32_t row{ cell->getRow() };
+
+    const auto iter{ std::find(m_markedMap.begin(), m_markedMap.end(),
+                               toMapNum(col, row)) };
+    if (iter != m_markedMap.end())
+        m_markedMap.erase(iter);
 }
 
 Field::Field(const int32_t widthCells, const int32_t heightCells,
@@ -227,8 +254,12 @@ void Field::generate()
                     this, &Field::rightClickedCellSlot);
             connect(cell, &BasicCell::cellCheckedSignal,
                     this, &Field::cellCheckedSlot);
+            connect(cell, &BasicCell::cellMarkedSignal,
+                    this, &Field::cellMarkedSlot);
+            connect(cell, &BasicCell::cellUnmarkedSignal,
+                    this, &Field::cellUnmarkedSlot);
 
-            ++timer;
+            std::cerr << ++timer << std::endl;
         }
 
         m_cellsData.push_back(currentCol);
@@ -302,7 +333,11 @@ void Field::checkCellsAround(const int col, const int row)
             const size_t currColST{ static_cast<size_t>(col + colMod) };
             const size_t currRowST{ static_cast<size_t>(row + rowMod) };
 
-            m_cellsData[currColST][currRowST]->check();
+            if (m_openingCells)
+                m_cellsToOpen.push(m_cellsData[currColST][currRowST]);
+
+            else
+                m_cellsData[currColST][currRowST]->check();
         }
 }
 
@@ -350,7 +385,6 @@ void Field::mousePressEvent(QGraphicsSceneMouseEvent* event)
         QGraphicsScene::mousePressEvent(event);
 }
 
-
 //Двойное нажатие запрещено
 void Field::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -396,4 +430,20 @@ QByteArray Field::toByteArray() const
         dataStream << num;
 
     return dataArray;
+}
+void Field::openCellsArea(const BasicCell* startCell)
+{
+    m_openingCells = true;
+
+    checkCellsAround(startCell->getCol(), startCell->getRow());
+
+    while (!m_cellsToOpen.empty())
+    {
+        BasicCell* cell{ m_cellsToOpen.front() };
+        m_cellsToOpen.pop();
+
+        cell->check();
+    }
+
+    m_openingCells = false;
 }

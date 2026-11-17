@@ -4,6 +4,7 @@
 #include "Enums.h"
 
 #include <vector>
+#include <queue>
 
 #include <QGraphicsScene>
 
@@ -31,6 +32,8 @@ private slots:
     void leftClickedCellSlot();
     void rightClickedCellSlot();
     void cellCheckedSlot();
+    void cellMarkedSlot();
+    void cellUnmarkedSlot();
 
 public:
     explicit Field(std::int32_t widthCells, std::int32_t heightCells,
@@ -56,13 +59,14 @@ protected:
     void arrangeNums();
     void incrementCellsNumsAround(int col, int row);
     void checkCellsAround(int col, int row);
+    void openCellsArea(const BasicCell* startCell);
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
     [[nodiscard]] std::int32_t toMapNum(std::int32_t col, std::int32_t row) const;
     [[nodiscard]] std::pair<std::int32_t, std::int32_t> fromMapNum(
         std::int32_t mapNum) const;
-
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
     std::int32_t m_fieldWidthCells{};
@@ -74,6 +78,8 @@ private:
     std::vector<std::int32_t> m_minesMap{};
     std::vector<std::int32_t> m_checkedMap{};
     std::vector<std::int32_t> m_markedMap{};
+    std::queue<BasicCell*> m_cellsToOpen{};
+    bool m_openingCells{ false };
 };
 
 #endif //FIELD_H

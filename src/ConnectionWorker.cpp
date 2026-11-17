@@ -25,6 +25,7 @@ void ConnectionWorker::sendLeftClick(const std::int8_t playerNum,
 
     QDataStream dataStream{ &message, QIODevice::WriteOnly };
     dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
 
     dataStream << Constants::LEFT_CLICK_MESSAGE_LENGTH;
     dataStream << NetworkEnums::LeftClick;
@@ -41,6 +42,7 @@ void ConnectionWorker::sendRightClick(const std::int8_t playerNum,
 
     QDataStream dataStream{ &message, QIODevice::WriteOnly };
     dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
 
     dataStream << Constants::RIGHT_CLICK_MESSAGE_LENGTH;
     dataStream << NetworkEnums::RightClick;
@@ -66,6 +68,36 @@ void ConnectionWorker::sendField(const QByteArray& fieldData)
     write(message);
 }
 
+void ConnectionWorker::sendWaitField(const std::int8_t playerNum)
+{
+    QByteArray message{};
+
+    QDataStream dataStream{ &message, QIODevice::WriteOnly };
+    dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
+
+    dataStream << Constants::WAIT_FIELD_MESSAGE_LENGTH;
+    dataStream << NetworkEnums::WaitField;
+    dataStream << playerNum;
+
+    write(message);
+}
+
+void ConnectionWorker::sendRestartGame(const std::int8_t playerNum)
+{
+    QByteArray message{};
+
+    QDataStream dataStream{ &message, QIODevice::WriteOnly };
+    dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
+
+    dataStream << Constants::RESTART_GAME_MESSAGE_LENGTH;
+    dataStream << NetworkEnums::RestartGame;
+    dataStream << playerNum;
+
+    write(message);
+}
+
 void ConnectionWorker::checkDataReady()
 {
     while (true)
@@ -75,6 +107,7 @@ void ConnectionWorker::checkDataReady()
 
         QDataStream dataStream{ &m_data, QIODevice::ReadOnly };
         dataStream.setByteOrder(QDataStream::BigEndian);
+        dataStream.setVersion(QDataStream::Qt_6_10);
 
         std::int32_t length{};
         dataStream >> length;
@@ -96,6 +129,7 @@ void ConnectionWorker::processMessage(QByteArray& message)
 {
     QDataStream dataStream{ &message, QIODevice::ReadOnly };
     dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
 
     std::int32_t length{};
     NetworkEnums::MessageType messageType{};
@@ -147,7 +181,26 @@ void ConnectionWorker::processMessage(QByteArray& message)
             break;
         }
 
-        default:
-            return;
+        case NetworkEnums::WaitField:
+        {
+            std::int8_t playerNum{};
+
+            dataStream >> playerNum;
+
+            emit receivedWaitFieldSignal(playerNum);
+            break;
+        }
+
+        case NetworkEnums::RestartGame:
+        {
+            std::int8_t playerNum{};
+
+            dataStream >> playerNum;
+
+            emit receivedRestartGameSignal(playerNum);
+            break;
+        }
+
+        default:;
     }
 }

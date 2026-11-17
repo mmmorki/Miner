@@ -17,6 +17,7 @@ public: signals:
     void fromOnlineRightClickSignal(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
     void fromOnlineFieldSignal(const QByteArray& fieldData);
+    void fromOnlineRestartGameSignal(std::int8_t playerNum);
 
 public slots:
     /* Слоты для получения сетевых команд от поля и последующей отправки в
@@ -35,6 +36,7 @@ private slots:
     void receivedRightClickSlot(std::int8_t playerNum, std::int32_t col,
         std::int32_t row);
     void receivedFieldSlot(const QByteArray& fieldData);
+    void receivedRestartGameSlot(std::int8_t playerNum);
 
 public:
     explicit Client(QObject* parent = nullptr);
@@ -42,6 +44,9 @@ public:
 
     void setPlayerNum(std::int8_t playerNum);
     void connectToHost(const QHostAddress& address, quint16 port);
+
+    void restartGame();
+    void waitField();
 
 private:
     ConnectionWorker* m_connection{ nullptr };

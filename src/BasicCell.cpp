@@ -34,6 +34,7 @@ void BasicCell::mark()
     {
         m_marked = true;
         update();
+        emit cellMarkedSignal();
     }
 }
 
@@ -43,6 +44,7 @@ void BasicCell::unmark()
     {
         m_marked = false;
         update();
+        emit cellUnmarkedSignal();
     }
 }
 

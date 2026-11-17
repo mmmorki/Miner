@@ -11,6 +11,8 @@ public: signals:
     void leftClickedCellSignal();
     void rightClickedCellSignal();
     void cellCheckedSignal();
+    void cellMarkedSignal();
+    void cellUnmarkedSignal();
 
 public:
     explicit BasicCell(int col, int row, QGraphicsItem* parent = nullptr);
