@@ -2,5 +2,13 @@
     <qresource prefix="/">
         <file>textures/flag_texture.png</file>
         <file>textures/mine_texture.png</file>
+        <file>textures/numbers/1.png</file>
+        <file>textures/numbers/2.png</file>
+        <file>textures/numbers/3.png</file>
+        <file>textures/numbers/4.png</file>
+        <file>textures/numbers/5.png</file>
+        <file>textures/numbers/6.png</file>
+        <file>textures/numbers/7.png</file>
+        <file>textures/numbers/8.png</file>
     </qresource>
 </RCC>

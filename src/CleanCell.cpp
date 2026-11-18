@@ -31,7 +31,10 @@ void CleanCell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         painter->drawRect(QRectF{ 0.0, 0.0, Constants::CELL_WIDTH_PX,
                                           Constants::CELL_HEIGHT_PX });
         if (m_minesAroundCount > 0)
-            painter->drawText(20.0, 20.0, QString::number(m_minesAroundCount));
+        {
+            const size_t colorIndex{ static_cast<size_t>(m_minesAroundCount - 1) };
+            painter->drawPixmap(5.0, 5.0, QPixmap{ numTextures[colorIndex] });
+        }
     }
 
     if (isMarked())
