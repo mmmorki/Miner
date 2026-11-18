@@ -155,6 +155,7 @@ Field::Field(const QByteArray& data, QObject* parent)
 {
     QDataStream dataStream{ data };
     dataStream.setByteOrder(QDataStream::BigEndian);
+    dataStream.setVersion(QDataStream::Qt_6_10);
 
     dataStream >> m_fieldWidthCells >> m_fieldHeightCells;
 
@@ -167,7 +168,7 @@ Field::Field(const QByteArray& data, QObject* parent)
         m_minesMap.push_back(num);
     }
 
-    m_minesCount = minesMapLength;
+    m_minesCount = static_cast<int32_t>(m_minesMap.size());
     m_cleanCellsLeft = m_fieldWidthCells * m_fieldHeightCells - m_minesCount;
 
     int32_t checkedMapLength{};
@@ -276,7 +277,7 @@ void Field::generateMinesMap()
     std::random_device rd{};
     std::seed_seq seed{ rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd() };
     std::mt19937 generator{ seed };
-    std::uniform_int_distribution distribution{ 0, cellsCount };
+    std::uniform_int_distribution distribution{ 0, cellsCount - 1 };
 
     while (m_minesMap.size() < m_minesCount)
     {
