@@ -1,8 +1,7 @@
 #include "Constants.h"
+#include "Functions.h"
 
 #include "MinedCell.h"
-
-#include <iostream>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -29,9 +28,9 @@ void MinedCell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         painter->setBrush(QBrush{ Constants::CHECKED_CELL_COLOR });
         painter->drawRect(QRectF{ 0.0, 0.0, Constants::CELL_WIDTH_PX,
                                             Constants::CELL_HEIGHT_PX });
-        painter->drawPixmap(5.0, 5.0, QPixmap{ ":/textures/mine_texture.png" });
+        painter->drawPixmap(5.0, 5.0, getCachedPixmap(":/textures/mine_texture.png"));
     }
 
     if (isMarked())
-        painter->drawPixmap(5.0, 5.0, QPixmap{ ":/textures/flag_texture.png" });
+        painter->drawPixmap(5.0, 5.0, getCachedPixmap(":/textures/flag_texture.png"));
 }

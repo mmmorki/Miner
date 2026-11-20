@@ -28,6 +28,15 @@ void BasicCell::check()
     }
 }
 
+void BasicCell::checkSilently()
+{
+    if (!isMarked() && !isChecked())
+    {
+        m_checked = true;
+        update();
+    }
+}
+
 void BasicCell::mark()
 {
     if (!isChecked())

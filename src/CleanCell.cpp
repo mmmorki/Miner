@@ -1,4 +1,5 @@
 #include "Constants.h"
+#include "Functions.h"
 
 #include "CleanCell.h"
 
@@ -33,7 +34,7 @@ void CleanCell::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         if (m_minesAroundCount > 0)
         {
             const size_t colorIndex{ static_cast<size_t>(m_minesAroundCount - 1) };
-            painter->drawPixmap(5.0, 5.0, QPixmap{ numTextures[colorIndex] });
+            painter->drawPixmap(5.0, 5.0, getCachedPixmap(numFileNames[colorIndex]));
         }
     }
 

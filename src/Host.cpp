@@ -1,6 +1,8 @@
-#include "../include/Host.h"
+#include "Host.h"
 
 #include "ConnectionWorker.h"
+
+#include <iostream>
 
 void Host::toOnlineLeftClickSlot(const std::int32_t col, const std::int32_t row)
 {

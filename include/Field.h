@@ -80,6 +80,7 @@ private:
     std::vector<std::int32_t> m_markedMap{};
     std::queue<BasicCell*> m_cellsToOpen{};
     bool m_openingCells{ false };
+    bool m_openingMinedCellsAfterDefeat{ false };
 };
 
 #endif //FIELD_H

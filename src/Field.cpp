@@ -361,10 +361,9 @@ void Field::defeat()
 {
     for (const int num : m_minesMap)
     {
-        const size_t col{ static_cast<size_t>(num / m_fieldHeightCells) };
-        const size_t row{ static_cast<size_t>(num % m_fieldHeightCells) };
-
-        m_cellsData[col][row]->check();
+        static int timer{ 0 };
+        const auto [col, row]{ fromMapNum(num) };
+        m_cellsData[col][row]->checkSilently();
     }
 
     block();

@@ -24,6 +24,7 @@ public:
     [[nodiscard]] bool isMarked() const;
 
     void check();
+    void checkSilently();
     void mark();
     void unmark();
 

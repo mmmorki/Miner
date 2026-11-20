@@ -5,9 +5,23 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <iostream>
 
 #include <QString>
-#include <memory>
+#include <QPixmapCache>
+
+inline QPixmap getCachedPixmap(const QString& fileName)
+{
+    QPixmap pixmap{};
+
+    if (QPixmapCache::find(fileName, &pixmap))
+        return pixmap;
+
+    pixmap.load(fileName);
+    QPixmapCache::insert(fileName, pixmap);
+    std::cerr << fileName.toStdString() << " loaded" << std::endl;
+    return pixmap;
+}
 
 inline int toInt(const QString& strValue)
 {
